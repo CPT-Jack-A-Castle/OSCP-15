@@ -7,7 +7,7 @@ Browser Tools
 - **Debugger** - Inspect and control the flow of a page's JavaScript 
 - **Network** - See all the network requests a page makes 
 
-### Developer Tools (Insepctor)
+## Developer Tools (Insepctor)
 
 ![image](https://user-images.githubusercontent.com/79100627/165856751-68abf0ed-54ad-4a56-8680-e1c3a3fc73e1.png)
 
@@ -17,7 +17,7 @@ It will show the original text
 
 ![image](https://user-images.githubusercontent.com/79100627/165856908-68c60f78-6c13-4fa3-9c55-375ee2179e29.png)
 
-### Developer Tools (Debugger) 
+## Developer Tools (Debugger) 
 
 Debugger is intended to debugging javascript </br>
 As a penetration testers, it gives us the option of digging deep into the JavaScript code 
@@ -32,7 +32,7 @@ By clicking this, it will format the JS file
 
 Set the pointer and refresh for the debugging
 
-### Developer Tools (Network)
+## Developer Tools (Network)
 
 The network tab on the developer tools can be used to keep track of every external request a webpage makes. If you click on the Network tab and then refresh the page, you will see all the files the page is requesting 
 
@@ -41,7 +41,7 @@ The network tab on the developer tools can be used to keep track of every extern
 There is a event happening for contact-msg which is the form being submitted in the background using a method called AJAX. AJAX is a method of sending and receiving network data in a web application background without interfering by changing the current web page. 
 
 
-### What is Content Discovery 
+## What is Content Discovery 
 
 Content can be many things, a file, video, picture, backup, a website feature. When we talk about content discovery, we're not talking about the obvious things we can see on a website; it's the thing that aren't immeidately presented to us and that weren't always intended for public access. 
 
@@ -51,7 +51,7 @@ There are three ways of discovering content on a website called **Manually, Auto
 
 The file contains search engines which pages they are and aren't allowed to show their search engine result or ban specific search engines from crawling the website. 
 
-### Manual Discovery (Favicon)
+## Manual Discovery (Favicon)
 
 The favicon is a small icon displayed in the browswer's address bar or tab used for branding a website 
 
@@ -68,11 +68,11 @@ Here is the icon and if you download favicon and get md5 hash by using curl comm
 ![image](https://user-images.githubusercontent.com/79100627/165861793-c9fb8b96-1508-4589-9bcd-3ab64f059967.png)
 
 
-### Maunal Discovery (Sitemap.xml) 
+## Maunal Discovery (Sitemap.xml) 
 
 unlike the txt file above, which restricts what search engine crawlers can look at, the sitemap.xml file gives a list of every file the website owner wishes to be listed on a search engine. These can contain areas of the website that are bit mroe difficult to navigate to or even list some old webpages that the current site no loger uses but are still working behind the scenes. 
 
-### Manual Discovery (Headers) 
+## Manual Discovery (Headers) 
 
 When we make a requests to the web server, the server returns various HTTP headers. These headers can sometimes contain useful information such as the webserver software and possibly the programming/scripting language in use. 
 
@@ -80,10 +80,31 @@ By using the curl command we can see the version of the website and using this i
 
 ![image](https://user-images.githubusercontent.com/79100627/165862848-f8775fb8-19ec-4813-a3f6-65bc2a7e8b82.png)
 
-### Manual Discovery (Framework Stack) 
+## Manual Discovery (Framework Stack) 
 
 Once you've established the framework of website, either from the above favicon example or by looking for clues in the page source such as comments, copyright notices or credits, you can then locate the framework website. 
 
+## OSINT (Google Hacking / Dorking)
+
+Google Hacking / Dorking utilizeis Google's advanced search engine features, which allow you to pick out custom content. You can, for instance, pick out the results from a certain domain name using the site: filter, for example (site:tryhackme.com) you can then match this up with certain search terms, say, for example, the word admin (stie: tryhackme.com admin) this then would only return results from the tryhackme.com 
+
+![image](https://user-images.githubusercontent.com/79100627/165864053-5b42470f-b307-4a56-995b-c2566c7ddc8f.png)
+
+## Wappalyzer 
+
+Wappalyzer is an online tool and browser extension that helps identify what technologies a website uses, such as framworks, Content Management System(CMS), payment processors and much more, and it can even find version number as well. 
+
+## Automated Discovery
+
+Automated discovery is the process of using tools to discover content rather than doing it manually. This process is automated as it usually contains hundreds, thousands or even millions of requests to a web server. These requests check whether a file or directory exists on a website, giving us access to resources we didn't previously know existed. This process is made possible by using a resource called wordlists. 
+
+### What are wordlists?
+
+Wordlists are just text files that contain a long list of commonly used words; they can cover many different use cases. For example, a password wordlist would include the m0st frequenlty used passwords, whereas we're looking for content in our case, so we'd require a list containing the most commonly used directory and file names. An excellent resource for wordlists that is preinstalled on THM AttackBox is https://github.com/danielmiessler/SecLists
+
+### Automation Tools
+
+Although there are many different content discovery tools available, all with their features and flaws, we're going to cover three which are preinstalled on our attack box, ffuf, dirb and gobuster 
 
 
 
