@@ -153,3 +153,17 @@ Because the above command will always produce valid result, we need to filter th
 ![image](https://user-images.githubusercontent.com/79100627/166054378-bb4b2ebd-42cd-4e7a-af65-c86f01867877.png)
 
 This command has a similar syntax to the first aprt from the -fs swtich, which tells ffuf to ignore any results that are of the specified size. 
+
+## Username Enumeration 
+
+A helpful exercise to complete when trying to find authentication vulnerabilities is creating a list of valid usernames
+
+Website error messages are great resources for collating this information to build our list of valid usernames. We have a form to create a new user account if we go to the Acme IT support website (http://10.10.239.104/customers/signup) signup page. 
+
+If you try enterint the username **admin** and fill in the other form fields with fake information, you will see we get the error **An account with this username already exists.** We can use the existence of this error message to produce a list of valid usernames already signed up on the system by using the ffuf tool below. The ffuf tool uses a list of commonly used usernames to check against for any matches 
+
+![image](https://user-images.githubusercontent.com/79100627/166064008-562edc9c-55bc-4ca9-b85f-f23854d95246.png)
+
+In the above example, the ```-w``` argument selects the file's location on the computer that contains the list of usernames that we're going to check exist. The ```-X``` argument specifies the request method, this will be a GET request by default, but it is a POST request in our example. The ```-d``` argument specifies the data that we are going to send. In our example, we have the fields username,email,password and cpassword. We've set the value of the username to FUZZ. In the ffuf tool, the FUZZ keyword signifies where the contents from our wordlist will be inserted in the request. The ```-H``` argument is used for adding additional headers to the request. In this instance, we're setting ``` Content-Type``` to the Webserver knows we are sending form data. The ```-u``` argument specifies the URL we are making the request to, and finally, the ```-mr``` argument is the text on the page we are looking for to validate we've found a valid username. 
+
+
