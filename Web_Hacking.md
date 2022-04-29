@@ -106,7 +106,50 @@ Wordlists are just text files that contain a long list of commonly used words; t
 
 Although there are many different content discovery tools available, all with their features and flaws, we're going to cover three which are preinstalled on our attack box, ffuf, dirb and gobuster 
 
+## Subdomain Enumeration 
+
+Subdomain enumeration is the process of finding valid subdomains for a domain, but why do we do this? We do this to expand our attack surface to try and discover more potnetial points of vulnerability. 
+
+Different Subdomain enumeration methods: Brute Force, OSINT (Open-Source Intelligence) and Virtual Host. 
+
+## What is Subdomain
+
+Subdomains are a prefix added to your domain name in order to help navigate and organize sections of your website. They are primarily used to manage site areas that are extensive enough to require their own hierarchy, such as online stores, blogs, or support platforms 
+
+## OSINT - SSL/TLS Certification
+
+When an SSL/TLS (Secure Socket Layer/ Transport Layer Security) certificate is created for a domain by a CA(Certificate Authroity), CA's take part in what's called "Certificate Transparency (CT) logs". These are publicly accessible logs of every SSL/TLS certificate created for a domain name. The purpose of Certificate Transparency logs is to stop malicious and accidentally made certificates from being used. We can use this service to our advantage to discover subdomains belonging to a domain. sites like https://crt.sh and https://transparencyreport.google.com/https/certificates offer a searchable database of certificates that shows current and historical results. 
+
+## OSINT - Search Engines 
+
+Search engines contain trillions of links to more than a billion websites, which can be an excellent resource for finding new subdomains. Using advanced search methods on websites like Google, such as the site: filter, can narriow the search results. For example, "-site:www.domain.com site:*.domain.com" would only contain results leading to the domain name domain.com but exclude any links to www.domain.com; therefore, it shows us only subdomain names belonging to domain.com. 
+
+## DNS BruteForce
+
+Bruteforce DNS (Domain Name System) enumeration is the method of trying tens, hundreds, thousands or even millions of different possible subdomains from a pre-defined list of commonly used subdomains. Because this method requires many requests, we automate it with tools to make the process quicker. In this instance, we are using a tool called dnsrecon to perform
 
 
+## OSINT - Sublist3r 
 
+Automation Using Sublist3r 
 
+To speed up the process of OSINT subdomain discovery, we can automate the above methods with the help of tools like Sublist3r
+![image](https://user-images.githubusercontent.com/79100627/166008826-ed905c3a-b19f-47ee-b2ab-884fdf878483.png)
+
+## Virtual Hosts 
+
+Some subdomains aren't always hosted in publically accessible DNS results, such as development versions of a web application or adminstration portals. Instead, the DNS record could be kept on a private DNS server or recorded on the developer's machines in their /etc/hosts file (or C:\windows\system32\drivers\etc\hosts file for Window users) which maps domain names to IP address 
+
+Because Web servers can host multiple websites from one server when a website is requrested from a client, the server knows which website the client wants from the Host header. We can utilize this host header by making changes to it and monitoring the response to see if we've disovered a new website.
+
+Like with DNS Bruteforce, we can automate this process by using a wordlist of commonly used subdomains. 
+
+![image](https://user-images.githubusercontent.com/79100627/166010067-cb668c3f-a9e9-435f-b2a4-0ff6d1da79d3.png)
+
+The above command uses the -w switch to specify the wordlist we are going to use. The -H switch adds/edits a header (in this instance, the Host Header), we have the FUZZ keyword in the space where a subdomain would normally go, and this is where we will try all the options from the wordlist. 
+
+Because the above command will always produce valid result, we need to filter the output. We can do this by using the page size result with the -fs switch. 
+
+![image](https://user-images.githubusercontent.com/79100627/166054378-bb4b2ebd-42cd-4e7a-af65-c86f01867877.png)
+
+This command has a similar syntax to the first aprt from the -fs swtich, which tells ffuf to ignore any results that are of the specified size. 
