@@ -251,4 +251,51 @@ Set-Cookie: eyJpZCI6MSwiYWRtaW4iOmZhbHNlfQ==; Max-Age=3600; Path=/
 ```
 This String base 64 decoded has the value of {"id":1,"admin":false} we can then encode this back to base64 encoded again but instead setting the admin value to true, which now gives us admin access. 
 
+## IDOR 
+
+IDOR stands for Insecure Direct Object Reference and is type of access control vulnerability.
+
+This type of vulnerability can occur when a web server receives user-supplied input to retrieve objects (files, data, documents), too much trust has been placed on the input data, and it is not validated on the server-side to confirm the requested object belongs to the user requesting it. 
+
+## IDOR Example 
+
+Imagine you just signed up for an oline service, and you want to change your profile information. The link you click on goes to http://website/profile?user_id=1305 and you can see your information.
+
+Curiosity gets better of you, and you try changing the user_id value 1000 instead (http://online-service.thm/profile?user_id=1000), and to your surprise, you can see now see another user's information. You have now discovered an IDOR vulnerability! ideally, there should be a check on the website to confrim that the user information belongs to the user logged requesting it.
+
+## Encoded IDs 
+
+When passing data from page to page either by post data, query strings, or cookies, web developers will often first take the raw data and encode it. Encoding ensures that the receiving web server will be able to understand the contents. Encoding changes binary data into ASCII string commonly using the ```a-z, A-Z, 0-9 and =``` character for padding. The most common encoding technique on the web is base64 encoding and can ususally be pretty easy to spot. You can use website like https://www.base64decode.org/ to decode the string, then edit the data and re-encoding it again using https://www.base64encode.org/ and then resubmit web request to see if there is a change in the response. 
+
+![image](https://user-images.githubusercontent.com/79100627/166289120-63a6f78a-f2c6-4fc6-a9f6-efa5381e086b.png)
+
+## Hashed IDs
+
+Hashed IDs are a little bit more complicated to deal with than encoded ones, but they may follow a predictable pattern such as being the hashed version of the integer value. For example, the ID number 123 would become 202cb962ac59075b964b07152d234b70 if md5 hashing were in use.
+
+It is worthwhile putting any discovered hashes through a web service such as https://crackstation.net/ (which has a database of billions of hash to value results) to see if we can find any matches 
+
+## Finding IDORs in Unpredictable IDs 
+
+Unpredictable IDs 
+
+If the id can not be detected using the above methods, an excellent method of IDOR detection is to create two accounts and swap the ID numbers between them. If you can view the other user's content using their ID number while still being logged in with a different account (or not logged in at all), you've found a valid IDOR vulnerability 
+
+## Where are IDORs located
+
+The vulnerable endpoint you're targeting may not always be something you see in the address bar. It could be content your browser loads in via an AJAX request or something that you find referenced in a JavaScript file.
+
+Sometimes endpoints could have an unreferenced parameter that may have been of some use during development and got pushed to production. For example, you may notice a call to /user/details/ details displaying your user information (authenticated through your session). But through attack known as parameter mining, you discover a parameter called user_id that you can use to display other user's information, for exmaple, /user/details?user_id=123
+
+## IDOR Example 
+
+![image](https://user-images.githubusercontent.com/79100627/166291320-69aaf4cc-ce3a-497b-982c-708b5d2b6fe3.png)
+
+![image](https://user-images.githubusercontent.com/79100627/166291398-42c135ca-0bf6-470e-9ef3-9e8c429b607a.png)
+
+Found the vulnerability for Customer ID 
+
+![image](https://user-images.githubusercontent.com/79100627/166291514-bd3a1963-cbf1-4ff2-a6cb-512745ea27ff.png)
+
+
 
