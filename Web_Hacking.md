@@ -176,5 +176,79 @@ A brute force attack is an automated process that tries a list of commonly used 
 
 This ffuf command is a little different to the previous one in Task 2. Previously we used the FUZZ keyword to select where in the request the data from the wordlists would be inserted, but because we're using multiple wordlists, we have to specify our own FUZZ keyword. In this instance, we've chosen ```W1``` for our list of valid usernames and ```W2``` for the list of passwords we will try. The multiple wordlists are again specified with the ```-w``` argument but separated with a comma. For a positive match, we're using the -fc argument to check for an HTTP status code other than 200.
 
+## Logic Flaw 
+
+Sometimes authentication process contains logical flaws. A logic flaw is when the typical logical path of an application is either by passed, circumvented or manipulated by a hacker. Logical flaws can exist in any area of a website, but we're going to concentrate on examples relating to authentication in this instance.
+
+![image](https://user-images.githubusercontent.com/79100627/166252576-39420cba-e952-4fb9-a754-68c5ff3c371b.png)
+
+### Logical Flaw Example 
+
+The below mock code example checks to see whether the start of the path the client is visiting begins with /admin and if so, then further checks are made to see whether the client is, in fact, an admin. If the page doesn't begin with/admin, the page is shown to the client. 
+
+```
+if(url.substr(0,6) === '/admin') {
+  # Code to check user is an admin
+}else 
+{
+  # View Page 
+}
+```
+Because the above PHP code example uses three equals sign(===), it's looking for an exact match on the string, including the same letter casing. The code presents a logic flaw because an unauthenticated user requesting **/adMin** will not have their privileges checked and have the page displayed to them, totally bypassing the authentication checks 
+
+### Logical Flaw Example 
+
+![image](https://user-images.githubusercontent.com/79100627/166256463-9449a42f-5720-4914-9938-d2074beae36d.png)
+
+We use the ```-H``` flag to add an additional header to the request. In this instance, we are setting the ```Content-Type``` to ```application/x-www-form-urlencoded```, which lets the web server know we are sending form data so it properly understands our request. In the application, the user account is retrieved using the query string, but later on, in the application logic, the password reset email is sent using the data found in the PHP variable ```$_REQUEST```. 
+
+The PHP ```$_REQUEST``` variable is an array that contains data received from the query string and POST data. If the same key name is used for both the query string and POST data, the application logic for this variable favours POST data fields rather than the query string, so if we add another parameter to the POST form, we can control where the password reset email gets delievered.
+
+![image](https://user-images.githubusercontent.com/79100627/166258961-db044a96-aa8b-48e1-bc3b-fa2f5d444eca.png)
+
+For next step, you will need to create an account on the Acme IT support customer section, doing so gives you a unique email address that can be used to create support tickets. The emailaddress is in the format of ```{username}```@customer.acmeitsupport.thm now rerunning Crul Request 2 but with your @acmeitsupport.thm in the email field you will have a ticket created on your account which contains a link to log you in as Robert. Using Robert's account, you can view their support tickets and reveal a flag. 
+
+![image](https://user-images.githubusercontent.com/79100627/166259610-a4244587-2819-4514-8c76-4e56b0e02c50.png)
+
+## Cookie Tampering 
+
+### Plain Text 
+
+The contents of some cookies can be in plain text, and it is obvious what they do. Take, for example, if these were the cookie set after a successful login: 
+```
+Set-Cookie: logged_in=true; Max-Age=3600;Path=/ 
+Set-Cookie: admin=false; Max-Age:3600; Path=/
+```
+
+We see one cookie (logged_in) which appears to control whether the user is currently logged in or not, and another (admin), which controls whether the visitor has admin previleges. Using this logic, if we were change the contents of the cookies and make request we will be able to change our privilleges.
+
+![image](https://user-images.githubusercontent.com/79100627/166260958-c82c1a80-c164-4509-9ff2-86a06c3e22af.png)
+
+Now we will send another request with the logged_in cookie set to true and the admin cookie set to false 
+
+![image](https://user-images.githubusercontent.com/79100627/166261213-f034bc0c-332b-46a9-af71-45e6aa9c52d2.png)
+
+We will send one last request setting both the logged_in and admin cookie to true: 
+
+![image](https://user-images.githubusercontent.com/79100627/166261474-a4b369d2-29f9-457b-a9d8-1a18ed16da09.png)
+
+### Hashing 
+
+Sometimes cookie values can look like a long string of random characters; these are called hashes which are an irreversible representation of the original text. 
+
+### Encoding
+
+Encoding is similar to hashing in that it creates what would seem to be a random string of text, but in fact, the encoding is reversible. So it begs the question, what is the point of encoding?
+
+Encoding allows us to convert binary data into human-readable text that can be easily and safely transmitted over mediums that only support plain text ASCII characters.
+
+Common encoding types are base 32 which converts binary data to the character A-Z and 2-7 and base 64 which converts using the characters a-z, A-Z, 0-9, +, / and the qeuals sign for padding.
+
+Take the below data as an example which is set by the web server upon logging in: 
+
+``` 
+Set-Cookie: eyJpZCI6MSwiYWRtaW4iOmZhbHNlfQ==; Max-Age=3600; Path=/
+```
+This String base 64 decoded has the value of {"id":1,"admin":false} we can then encode this back to base64 encoded again but instead setting the admin value to true, which now gives us admin access. 
 
 
