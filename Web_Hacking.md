@@ -298,4 +298,52 @@ Found the vulnerability for Customer ID
 ![image](https://user-images.githubusercontent.com/79100627/166291514-bd3a1963-cbf1-4ff2-a6cb-512745ea27ff.png)
 
 
+## File Inclusion
+
+### What is File Inclusion
+
+Essential knowledge to exploit file inclusion vulnerabilities, including Local File Inclusion (LFI), Remote File Inclusion (RFI), and directory traversal. </br>
+In some scenarios, web applications are written to request access to files on a given system, including images, static text, and so on via parameters. Parameters are query parameter strings attached to the URL that could be used to retrieve data perform actions based on user input. 
+
+![image](https://user-images.githubusercontent.com/79100627/166558240-a858129a-9734-48fc-b5a3-6340ce5e0ad1.png)
+
+For example, parameters are used with Google Searching, where ```GET``` requests pass user input into the search engine. ```https://www.google.com/search?q=TryHackMe```. Let's discuss a scenario where a user requests to access files from a webserver. First, the user sends an HTTP request to the web server that includes a file to display. For example, if a user requests to access files from a webserver. First, the user sends an HTTP request to the webserver that includes a file to display. For example, if a user wants to access and display their CV within the web application, the request may look as follows, ```http://webapp.thm/get.php?file=userCV.pdf``` where the ```file``` is the parameter and the ```userCV.pdf```, is the required file to access. 
+
+![image](https://user-images.githubusercontent.com/79100627/166558805-95931b86-d205-4ac2-9b9e-08b4cbb3c83a.png)
+
+
+## Why do File inclusion vulnerabilities happen? 
+
+File inclusion vulnerabilities are commonly found and exploited in various programming languages for web applications, such as PHP that are poorly written and implemented. The main issue of these vulnerabilities is the input validation, in which the user inputs are not sanitized or validated, and the user controls them. When the input is not validated, the user can pass any input to the function, causing the vulnerability 
+
+## What is the risk of File Inclusion?
+
+It depends! if the attacker can use file inclusion vulnerabilities to read sensitive data. In that case, the successful attack causes to leak of sensitive data, including code and files related to the web application, credentials for back-end systems. Moreover, if the attacker somehow can write to the server such as ```/tmp``` directory, then it is possible to gain remote command execution RCE. However, it won't be effective if file inclusion vulnerability is found with no access to sensitive data and no writing ability to the server. 
+
+## Path Traversal 
+
+Also known as ```Directory Traversal```, a web security vulnerability allows an attacker to read operating system resources, such as local files on the server running an application. The attacker exploits this vulnerability by manipulating and abusing the web application's URL to locate and access files or directories stored outside the application's root directory. 
+
+Path traversal vulnerabilities occur when the user's input is passed to a function such as file_get_contents in PHP. It is most important to note that the function is not the main contributor to the vulnerability. Often poor input validation or filtering is the cause of the vulnerability. In PHP, you can use the file_get_contents to read the content of a file. 
+
+The following graph shows how a web application stores files in ```/var/www/app```. The happy path would be the user requesting the contents of userCV.pdf from a defined path ```var/www/app/CVs```. 
+
+![image](https://user-images.githubusercontent.com/79100627/166559999-9500e453-bc2d-4166-8cdf-fbd3cd63535c.png)
+
+We can test out the URL parameter by adding payloads to see how the web application behaves. Path traversal attacks, also known as the ```dot-dot-slash``` attack, take advantage of moving the directory one step up using the double dots ```../```. If the attacker finds the entry point, which in this case ```get.php?file=```, then the attacker may send something as follows, ```http://webapp.thm/get.php?file=../../../../etc/passwd``` </br>
+Suppose there isn't input validation, and instead of accessing the PDF files at ```/var/www/app/CVs``` location, the web application retrieves files from other directories, which in this case ```/etc/passwd```. Each ```..``` entry moves one directory until it reaches the root directory ```/```. Then it changes the directory to ```/etc```, and from there, it read the ```passwd``` file. 
+
+![image](https://user-images.githubusercontent.com/79100627/166560670-0ac4b86f-9842-4594-98c6-965d03bff22f.png)
+
+
+As the result, the web application sends back the file's content to the user
+
+![image](https://user-images.githubusercontent.com/79100627/166563572-d0c5b0b5-98d3-4542-b2f5-5aada71ea5a2.png)
+
+Similarly, if the web application runs on a Windows server, the attacker needs to provide Windows paths. For example, if the attacker wants to read the boot.ini file located in ```c:\boot.ini``` then the attacker can try the following depending on the target OS version: 
+```http://webapp.thm/get.php?file=../../../../boot.ini``` or ```http://webapp.thm/get.php?file=../../../../windows/win.ini```
+The same concept applies here as with Linux operating system, where we climb up directories until it reaches the root directory, which is usually ```c:\```.
+Sometimes, developers will add filters to limit access to only certain files or directories. Below are some common OS files you could use when testing.
+
+![image](https://user-images.githubusercontent.com/79100627/166564002-b3c5fe5b-9983-47ab-bb04-a74240f0f0ae.png)
 
