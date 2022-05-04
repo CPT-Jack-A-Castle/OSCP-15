@@ -402,7 +402,7 @@ It seems we could move out the PHP directory but still, the ```include``` functi
 
 Using null bytes is an injection technique where URL-encoded representation such as ```%00``` or ```0x00``` in hex with user-supplied data to terminate strings. You could think of it as trying to trick the web app into disregarding whatever comes after the NULL bytes. 
 
-by adding the Null Byte at the end of the payload, we tell the ```include function to ignore anything after the null byte which may look like 
+by adding the Null Byte at the end of the payload, we tell the ```include``` function to ignore anything after the null byte which may look like 
 
 ```
 include("languages/../../../../../etc/passwd%00").".php"); ``` which equivalent to ```include("languages/../../../../etc/passwd");```
