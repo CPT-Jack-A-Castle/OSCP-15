@@ -357,7 +357,7 @@ LFI attacks against web applications are often due to a developers' lack of secu
 <?PHP
       include($_GET["lang"])
 ?>
-
+```
 The PHP code above uses a ```GET``` request via the URL parameter ```lang``` to include the file of the page. The call can be done by sending the following HTTP request as follows: ```http://webapp.thm/index.php?lang=EN,php``` to load the English page or ```http://webapp.thm/index.php?lang=AR.php``` to load the Arabic page, where EN.php and AR.php files exist in the same directory. 
 Theoraetically, we can access and display any readable file on the server from the code above if there isn't any input validation. Let's say we want to read the ```/etc/passwd``` file, which contains sensitive information about the users of the Linux operating system, we can try the following: ```http://webapp.thm/get.php?file=/etc/passwd```, which contains sensitive information about the users of the Linux operating system, we can try the following: http://webapp.thm/get.php?file=/etc/passwd```
 
