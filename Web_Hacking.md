@@ -404,8 +404,8 @@ Using null bytes is an injection technique where URL-encoded representation such
 
 by adding the Null Byte at the end of the payload, we tell the ```include``` function to ignore anything after the null byte which may look like 
 
-```
-include("languages/../../../../../etc/passwd%00").".php"); ``` which equivalent to ```include("languages/../../../../etc/passwd");```
+``` include("languages/../../../../../etc/passwd%00").".php"); ``` 
+which equivalent to ```include("languages/../../../../etc/passwd");```
 
 NOTE: the ```%00``` trick is fixed and not working with PHP 5.3.4 above. 
 
