@@ -373,3 +373,66 @@ In this case, it works because there isn't a directory specified in the include 
 
 In the above code, the developer decided to use the ```include``` function to call ```PHP``` pages in the languages directory only via ```lang``` parameters. If there is no input validation, the attacker can manipulate the URL by replacing the ```lang``` input with other OS-senstivie files such as ```/etc/passwd```. Again the payload looks similar to the ```path traversal```, but the include function allows us to include any called files into the current page. The following will be the exploit: ```http://webapp.thm/index.php?lang=../../../../etc/passwd```
  
+ ## Local File Inclusion #2 
+ 
+ 1. In the first two cases, we checked the code for the web app, and then we knew how to exploit it. However, in this case, we are performing blackbox testing, in which we don't have the source code. In this case, errors are significant in understanding how the data is passed and processed into the web app. 
+
+In this scenario, we have the following entry point: http://webapp.thm/index.php?lang=EN. If we enter an invalid input such as THM, we get the following error 
+
+```
+Warning: include(languages/THM.php): failed to open stream: No such file or directory in /var/www/html/THM-4/index.php on line 12 
+```
+
+The error message discloses significant information. By entering THM as input, an error message shows what the include function looks like ```include(languages.THM.php);```. If you look at the directory closely, we can tell the function includes files in the language directory adding ```.php``` at the end of the entry. Thus the valid input will be something as follows: ```index.php?lang=EN```, where the file ```EN``` is located inside the given ```languages``` directory and named ```EN.php```
+
+Also, the error message disclosed another important piece of information about the full web application directory path which is ```/var/www/html/THM-4/```
+
+To exploit this, we need to use the ```../```trick, as described in the directory traversal section, to get out the current folder. 
+
+```
+http://webapp.thm/index.php?lang=../../../../etc/passwd
+```
+
+Note that we used 4 ```../``` because we know the path has four levels ```/var/www/html/THM-4```. But we still receive the following error:
+
+```
+Warning: include(languages/../../../../../etc/passwd.php): failed to open stream: No such file or directory in /var/www/html/THM-4/index.php on line 12
+```
+It seems we could move out the PHP directory but still, the ```include``` function reads the input with ```.php``` at the end! This tells us that the developer specifies the file type to pass to the include function. To bypass this scenario, we can use the NULL BTYE, which is ```%00```.
+
+Using null bytes is an injection technique where URL-encoded representation such as ```%00``` or ```0x00``` in hex with user-supplied data to terminate strings. You could think of it as trying to trick the web app into disregarding whatever comes after the NULL bytes. 
+
+by adding the Null Byte at the end of the payload, we tell the ```include function to ignore anything after the null byte which may look like 
+
+```
+include("languages/../../../../../etc/passwd%00").".php"); ``` which equivalent to ```include("languages/../../../../etc/passwd");```
+
+NOTE: the ```%00``` trick is fixed and not working with PHP 5.3.4 above. 
+
+2. In this section, the developer decided to filter keywords to avoid disclosing sensitive information! The ```/etc/passwd``` file is being filtered. There are two possible methods to bypass the filter. First, by using the NullByte ```%00``` or the current directory trick at the end of the filtered keyword ```/.```. The exploit will be similar to ```http://webapp.thm/index.php?lang=/etc/passwd/.``` We could also use ```http://webapp.thm/index.php?lang=/etc/passwd%00```. 
+
+To make it clearer, if we try this concept in the file system using ``cd ..``, it will get you back one step; however, if you do ```cd .```, it stays in the current directory. Similarly, if we try ```/etc/passwd/..```, it results to be ```/etc/``` and that's because we moved one to the root. Now if we try ```/etc/passwd/.```, the result will be ```/etc/passwd``` since dot refers to the current directory. 
+
+3. Next, in the following scenarios, the developer starts to use input validation by filtering some keywords. Let's test out and check the error message! 
+
+``` http://webapp.thm/index.php?lang=../../../../etc/passwd```
+
+We got the following error!
+
+```
+Warning include(languages/etc/passwd/): falied to open stream: No such file or directory in /var/www/html/THM-5/index.php on line 15. 
+```
+
+If we check the warning message in the ```include(languages/etc/passwd) section, we know that the web application replaces the ```../``` with the empty string. There are a couple of techniques we can use to bypass this. 
+
+First, we can send the following payload to bypass it: ```....//....//....//....//....//etc/passwd``` 
+
+Why did this work?
+
+This work because the PHP filter matches and replaces the first subset string ```../``` it finds and does not do another pass
+
+![image](https://user-images.githubusercontent.com/79100627/166819691-82031b30-b8aa-41bb-a244-4758ff7c0920.png)
+
+
+
+
