@@ -347,3 +347,29 @@ Sometimes, developers will add filters to limit access to only certain files or 
 
 ![image](https://user-images.githubusercontent.com/79100627/166564002-b3c5fe5b-9983-47ab-bb04-a74240f0f0ae.png)
 
+## Local File Inclusion (LFI)
+
+LFI attacks against web applications are often due to a developers' lack of security awareness. With PHP, using functions such as ```include```,```require```,```include_once```, and ```require_once``` often contribute to vulnerable web applications.
+
+1. Suppose the web application provides two languages, and the user can select between the ```EN``` and ```AR```
+
+```
+<?PHP
+      include($_GET["lang"])
+?>
+
+The PHP code above uses a ```GET``` request via the URL parameter ```lang``` to include the file of the page. The call can be done by sending the following HTTP request as follows: ```http://webapp.thm/index.php?lang=EN,php``` to load the English page or ```http://webapp.thm/index.php?lang=AR.php``` to load the Arabic page, where EN.php and AR.php files exist in the same directory. 
+Theoraetically, we can access and display any readable file on the server from the code above if there isn't any input validation. Let's say we want to read the ```/etc/passwd``` file, which contains sensitive information about the users of the Linux operating system, we can try the following: ```http://webapp.thm/get.php?file=/etc/passwd```, which contains sensitive information about the users of the Linux operating system, we can try the following: http://webapp.thm/get.php?file=/etc/passwd```
+
+In this case, it works because there isn't a directory specified in the include function and no input validation. 
+
+2. Next, In the following code, the developer decided to specify the directory inside the function.
+
+```
+<?PHP
+      include("languages/". $_GET['lang']);
+ ?>
+```
+
+In the above code, the developer decided to use the ```include``` function to call ```PHP``` pages in the languages directory only via ```lang``` parameters. If there is no input validation, the attacker can manipulate the URL by replacing the ```lang``` input with other OS-senstivie files such as ```/etc/passwd```. Again the payload looks similar to the ```path traversal```, but the include function allows us to include any called files into the current page. The following will be the exploit: ```http://webapp.thm/index.php?lang=../../../../etc/passwd```
+ 
