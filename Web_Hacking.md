@@ -421,13 +421,13 @@ We got the following error!
 
 ``` Warning include(languages/etc/passwd/): falied to open stream: No such file or directory in /var/www/html/THM-5/index.php on line 15. ```
 
-If we check the warning message in the ```include(languages/etc/passwd)``` section, we know that the web application replaces the ```../``` with the empty string. There are a couple of techniques we can use to bypass this. 
+If we check the warning message in the ``` include(languages/etc/passwd) ``` section, we know that the web application replaces the ```../``` with the empty string. There are a couple of techniques we can use to bypass this. 
 
-First, we can send the following payload to bypass it: ```....//....//....//....//....//etc/passwd``` 
+First, we can send the following payload to bypass it: ``` ....//....//....//....//....//etc/passwd ``` 
 
 Why did this work?
 
-This work because the PHP filter matches and replaces the first subset string ```../``` it finds and does not do another pass
+This work because the PHP filter matches and replaces the first subset string ``` ../ ``` it finds and does not do another pass
 
 ![image](https://user-images.githubusercontent.com/79100627/166819691-82031b30-b8aa-41bb-a244-4758ff7c0920.png)
 
