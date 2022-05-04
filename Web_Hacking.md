@@ -419,11 +419,9 @@ To make it clearer, if we try this concept in the file system using ``cd ..``, i
 
 We got the following error!
 
-```
-Warning include(languages/etc/passwd/): falied to open stream: No such file or directory in /var/www/html/THM-5/index.php on line 15. 
-```
+``` Warning include(languages/etc/passwd/): falied to open stream: No such file or directory in /var/www/html/THM-5/index.php on line 15. ```
 
-If we check the warning message in the ```include(languages/etc/passwd) section, we know that the web application replaces the ```../``` with the empty string. There are a couple of techniques we can use to bypass this. 
+If we check the warning message in the ```include(languages/etc/passwd)``` section, we know that the web application replaces the ```../``` with the empty string. There are a couple of techniques we can use to bypass this. 
 
 First, we can send the following payload to bypass it: ```....//....//....//....//....//etc/passwd``` 
 
