@@ -471,3 +471,39 @@ Open the inspector and you can change the cookie value in the **Storage**
 ![image](https://user-images.githubusercontent.com/79100627/167317615-316119d6-5ba3-4079-97cd-6a9c9c58b1a9.png)
 
 
+## SSRF
+
+### What is an SSRF?
+
+SSRF stands for Server-Side Request Forgery. It's a vulnerability that allows a malicious user to cause the webserver to make an additional or edited HTTP request to the resource of the attacker's choosing 
+
+## Type of SSRF 
+
+There are two types of SSRF vulnerability; the first is regular SSRF where data is retunred to the attacker's screen.</br>
+The second is Blind SSRF vulnerability where an SSRF occurs, but no information is returned to the attacker's screen. </br>
+
+## What is the impact?
+
+A successful SSRF attack can result in any of the following:
+- Access to unauthroized areas. 
+- Access to customer/organizational data.
+- Ability to Scale to internal networks.
+- Reveal authentication tokens/credentials. 
+
+## SSR Examples 
+
+How attacker can have complete control over the page requested by the webserver. The Expected Request is what the website.thm server is expecting to receive with the section in red being the URL that the website will fetch for the information. The attacker can modify the area in red to an URL of their choice 
+
+![image](https://user-images.githubusercontent.com/79100627/167318372-407038d2-0ce0-4680-a4cf-b76e0a3c4147.png)
+
+This one shows how attacker can still reach the /api/user page with only having control over the patch by utilising directory traversal. When website.thm receives ../ this is a message to move up a directory which removes the /stock portion of the request and turns the final request into /api/user
+
+![image](https://user-images.githubusercontent.com/79100627/167318453-2df5b5ad-76b9-45ef-9b36-e5a9c9c01c2e.png)
+
+In this example, the attacker can control the server's subdomain to which the request is made. Take note of payload ending in ```&x=``` being used to stop the remaining path from being appended to the end of the attacker's URL and instead turns it into a parameter (?x=) on the query string. 
+
+![image](https://user-images.githubusercontent.com/79100627/167318503-da09f98b-8f35-4a0a-ae42-5a2e71d21177.png)
+
+Going back to the original request, the attacker can instead force the webserver to request a server of the attacker's choice. By doing so, we can capture request headers that are sent to the attacker's specific domain. These headers could contain authentication credentials or API keys sent by the website.thm (that would normally authenticate to api.website.thm). 
+
+![image](https://user-images.githubusercontent.com/79100627/167318571-2e1c4773-0562-4428-8932-26395dd81048.png)
