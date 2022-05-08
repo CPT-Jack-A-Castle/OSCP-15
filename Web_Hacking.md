@@ -507,3 +507,34 @@ In this example, the attacker can control the server's subdomain to which the re
 Going back to the original request, the attacker can instead force the webserver to request a server of the attacker's choice. By doing so, we can capture request headers that are sent to the attacker's specific domain. These headers could contain authentication credentials or API keys sent by the website.thm (that would normally authenticate to api.website.thm). 
 
 ![image](https://user-images.githubusercontent.com/79100627/167318571-2e1c4773-0562-4428-8932-26395dd81048.png)
+
+## Finding an SSRF 
+
+Potential SSRF vulnerabilities can be spotted in web applications in many different ways. Here is an exaple of four common places to look: 
+
+- When a full URL is used in parameter in the address bar
+![image](https://user-images.githubusercontent.com/79100627/167319310-c33b1337-3847-4358-b1f7-6acd3405d80a.png)
+
+Some of these examples are easier to exploit than others, and this is where a lot of trials and error will be required to find a working payload. If working with a blind SSRF where no output is reflected back to you, you will need to use an external HTTP logging tool to monitor requests such as requestbin.com, your own HTTP server or Burp Suite's Collaborator client.
+
+## Defeating Common SSRF Defenses 
+
+More security-savvy developers aware of the risks of SSRF vulnerabilities may implement checks in their applications to make sure the requests resources meets specific rules. There are usually two approaches to this, either a deny list or an allow list 
+
+### Deny List 
+
+A Deny List is where all requests are accpeted apart from resources specified in a list or matching a particular pattern. A Web Application may employ a deny list to protect sensitive endpoints, IP addresses or domains from being accessed by the public while still allowing access to other locations. A specific endpoint to restrct access is the localhost, which may contain server performance data or further sensitive information, so domain names such as localhost and 127.0.0.1 would appear on a deny list. Attackers can bypass a Deny List by using alternative localhost references such as 0, 0.0.0.0, 0000, 127.1, 127.*.*.*, 2130706433, 017700000001 or subdomains that have a DNS record which resolves tot he IP address 127.0.0.1 such as 127.0.0.1.nip.io.
+
+Also in a cloud environment, it would be beneficial to block access to the IP address 169.254.169.254, which contains metadata for the deployed cloud server, including possibly sensitive information. An attacker can bypass this by registering a subdomain on their own domain with a DNS records that points to the IP address 169.254.169.254
+
+### Allow List 
+
+An Allow list is where all requests get denied unless they appear on a list or match a particular pattern, such as a rule that an URL used in a parameter must begin with https://website.htm. An attacker could quickly circumvent this rule by creating a subdomain on an attacker's domain name, such as https://website.thm.attackers-domain.thm. The application logic would now allow this input and let an attacker control the internal HTTP request. 
+
+### Open Redirect 
+
+If the above bypasses do not work, there is one more trick up the attacker's sleeve, the open redirect. An open redirect is an endpoint on the server where the website visitor gets automatically redirected to another website address. Take, for example, the link https://website.thm/link?url=https://tryhackme.com. This endpoint was created to record the umber of times visitors have clicked on this link for advertising/marketing purposes. But imagine there was a potential SSRF vulnerability with stringent rules which only allowed URLs beginning with https://website.thm/. An attacker could utilise the above feature to redirect the internal HTTP request to a domain of the attacker's choice. 
+
+
+
+
