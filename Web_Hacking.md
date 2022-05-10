@@ -663,9 +663,109 @@ When testing for Blind XSS vulnerabilities, you need to ensure your payload has 
 
 A popular tool for Blind XSS attacker is xsshunter. Although it is possible to make your own tool in java script, this tool will automatically capture cookies, URLS, page contents and more. 
 
+## Command Injection
 
+Command injection is the abuse of an application's behaviour to execute commands on the operating system, using the same privileges that the application on a device is running with. For example, achieving command injection on a web server running as a user named ```joe``` will execute commands under this ```joe``` user - and therefore obtain any permissions that ```joe``` has. 
 
+A command injection vulnerability is also known as "Remote Code Execution" (RCE) because an attacker can trick the application into executing a series of payloads that they provide, without direct access to the machine itself (interactive shell). The webserver will process this code and execute it under the privileges and access controls of the user who is running that application. 
 
+Command injection is also known as "Remote Code Execution" (RCE) because of ability to remotely execute code within an application. These vulnerabilities are often the most lucrative to an attacker because it means that the attacker can directly interact with the vulnerable system. For example, an attacker may read system or user files, data and things of that nature. 
 
+For example, being able to abuse an application to perfrom the command ```whoami``` to list what user account the application is running will be an example of command injection. 
 
+## Discovering Command Injection 
 
+This vulnerability exists because applications often use functions in programming languages such as PHP, Python and NodeJS to pass data to and to make system calls on the machine's operating system. For example, taking input from a field and searching for an entry into a file. Take this code snippet below as an example: 
+
+In this code snippet, the application takes data that a user enters in an input field named ```$title``` to search a directory for a song title. Let's break this down into a few simple steps. 
+
+![image](https://user-images.githubusercontent.com/79100627/167534785-887f7cbf-d621-4162-8d08-cb467fa551bb.png)
+
+1. The application stores MP3 files in a directory contained on the operating system.
+2. The user input the song title they wish to search for. The application stores this input into ```$title``` variable
+3. The data within this ```$title``` variable is passed to the command ```grep``` to search a text file named songtitle.txt for the entry of whatever the user wishees to search for.
+4. The output of this search of songtitle.txt will determine whether the application informs the user that the song exists or not. 
+
+Now, this sort of information would typically be stored in a database; however, this is just an example of where an application takes input from a user to interact with the application operating system. 
+
+An attacker could abuse this application by injecting their own commands for the application to execute. Rather than using ```grep``` to search for an entry in ```songtitle.txt```, they could ask the application to read data from a more sensitive file. 
+
+Abusing applications in this way can be possible no matter the programming language the application uses. As long as the application processes and executes it, it can result in command injection. For example, this code snippet below is an application written in Python 
+
+![image](https://user-images.githubusercontent.com/79100627/167535933-369bb604-0991-4801-8f1c-ec721a13be1f.png)
+
+- Flask package is used to set up a webserver 
+- A function that uses "subprocess" package to execute a command on the device 
+- We use a route in the webserver that will execute whatever is provided. For example, to execute ```whoami```, we need to visit http://flaskapp.thm/whoami
+
+## Exploiting Command Injection
+
+You can often determine whether or not command injection may occur by the behaviours of an application, as you will come to see in the practical session of this room. 
+
+Application that use user input to populate system commands with data can often be combined in unintended behaviour. For example, the shell operators ```;```, ```&``` and ```&&``` will combine two(or more) system commands and execute them both. If you are unfamiliar with this concept, it is worth checking out the Linux fundamentals module to learn more about this. 
+
+Command injection can be detected in mostly one of two ways:
+
+1. Blind command injection
+2. Verbose command injection
+
+![image](https://user-images.githubusercontent.com/79100627/167539093-53916993-e55a-4cf0-ac2b-9757d74a570d.png)
+
+### Detecting Blind Command Injection
+
+Blind command injection is when command injection occurs; however, there is no output visible, so it is not immediately noticeable. For example, a command is executed, but the web application outputs no message. 
+
+For this type of command injection, we will need to use payloads that will cause some time delay. For example, the ```ping``` and ```sleep``` commands are significant payloads to test with. Using ```ping``` as an example, the application will hang for x seconds in relation to how many pings you have specified.
+
+Another method of detecting blind command injection is by forcing some output. This can be done by using redirection operators such as ```>```. For example, we can tell the web application to execute commands such as ```whoami``` and redirect that to a file. We can then use a command such as ```cat``` to read this newly created file's contents.
+
+Testing command injection this way is often complicated and requires quite a bit of experimentation, significantly as the syntax for commands varies between Linux and Windows. 
+
+The ```curl``` command is a great way to test for command injection. This is because you are able to use curl to deliver data and from an application in your payload. 
+
+### Detecting Verbose Command Injection 
+
+Detecting command injection this way is arguably the easiest method of two. Verbose command injection is when the application gives you feedback or output as to what is happening or being executed. 
+
+For example, the output of commands such as ```ping``` or ```whoami``` is directly displayed on the web application 
+
+### Useful payloads 
+
+![image](https://user-images.githubusercontent.com/79100627/167540810-544433ec-be90-421d-a6fc-e0f1db7d0897.png)
+
+![image](https://user-images.githubusercontent.com/79100627/167540826-63abba9b-8cef-499b-9de6-055a2c034e75.png)
+
+## Remediating Command Injection 
+
+Command injection can be prevented in a variety of ways. Everything from minimal use of potentially dangerous functions or libraries in a programming language to filtering input without relying on a user's input. I have detailed these a bit further below. The examples below are of the PHP programming language; however, the same principles can be extended to many other languages 
+
+### Vulnerable Functions 
+
+In PHP, many functions interact with the operating system to execute commands via shell; these include: 
+- Exec
+- Passthru
+- System 
+
+Take this snippet below as an example. Here, the application will accept and process numbers that are inputted into the form. This means that any commands such as ```whoami``` will not be processed.
+
+![image](https://user-images.githubusercontent.com/79100627/167541176-cf7aaba0-9ba1-4942-bb1e-0993fe265bab.png)
+
+1. The application will only accept specific pattern of characters (the digits 0-9)
+2. The application will then only proceed to execute this data which is all numerical 
+
+These functions take input such as a string or user data and will execute whatever is provided on the system. Any application that uses these functions without proper checks will be vulnerable to command injection 
+
+### Input sanitisation
+
+Sanitising any input from a user that an application uses is a great way to prevent command injection. This is a process of specifying the formats or types of data that a user can submit. For example, an input field that only accepts numerical data or removes any special characters such as ```>```, ```&``` and ```/```. 
+
+In the snippet below, the ```filter_input``` PHP function is used to check whether or not any data submitted via an input form is a number or not. If it is not a number, it must be invalid input.
+
+![image](https://user-images.githubusercontent.com/79100627/167541524-627babe9-949c-4b97-a5a6-14a9c3cb2870.png)
+
+### Bypassing Filters 
+
+Applications will employ numerous techniques in filtering and sanitising data that is taken from a user's input. These filters will restrict you to specific payloads. However, we can abuse the logic behind an application to bypass these filters. For example, an application may strip out qutation marks; we can instead use the hexadecimal value of this to achieve the same result.
+
+When executed, although the data given will be in a different format than what is expected, it can still be interpreted and will have the same result. 
+![image](https://user-images.githubusercontent.com/79100627/167542812-3fc519e7-e8b2-44c2-b2fb-4dbf47116298.png)
