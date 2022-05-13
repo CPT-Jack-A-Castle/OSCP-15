@@ -983,9 +983,33 @@ This payload should have produced a 5 second time delay, which confirms the succ
 You can now repeat enumeration process from the Boolean based SQL Injection, adding the SLEEP() method into the UNION SELECT statement.
 
 ```referrer=admin123' UNION SELECT SLEEP(5),2 where database() like 'u%';-- ```
+## Out of Band SQLi
 
+Out-of-Band SQL Injection is not common as it either depends on specific features being enabled on the database server or the web application's business logic, which makes some kind of eternal network call based on the results from an SQL query. 
 
+An Out of Band attack is classified by having two different communication channels, one to launch the attack and the other to gather the results. For example, the attack channel could be a web reuqest, and the data gathering channel could be a web request, and the data gathering channel could be monitoring HTTP/DNS requests made to a service you control
 
+1. An attacker makes a request to a website vulerable to SQL Injection with an injection payload. 
+
+2. The website makes an SQL query to the database which also passes the hacker's payload. 
+
+3. The payload contains a request which forces an HTTP request back to the hacker's machine containing data from the database 
+
+![image](https://user-images.githubusercontent.com/79100627/168397370-613cfa1d-598c-4ef8-9e39-230bb72ad6b0.png)
+
+## Remediation
+
+### Prepared Statement (With Parameterized Queries):
+
+In a prepared query, the first thing a developer writes is the SQL query and then any user inputs are added as a parameter afterwards. Writing prepared statements ensures that the SQL code structure does not change and the database can distinguish between the query and the data. As a benefit, it also makes your code look a lot clearner and easier to read
+
+### Input validation
+
+Input validation can go a long way to protecting what gets put into an SQL query. Employing an allow list can restrict input to only certain strings, or a string replacement method in the programming language can filter the characters you wish to allow or disallow. 
+
+### Escaping User Input
+
+Allowing user input containing characters such as ' " $ \ can cause SQL queries to break or even worse, as we've learnt, open them up for injection attacks. Escaping user input is the method of the prepending a backslash to these characters, which then cause them to be parsed just as a regular string and not a special character. 
 
 
 
