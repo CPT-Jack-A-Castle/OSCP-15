@@ -769,3 +769,224 @@ Applications will employ numerous techniques in filtering and sanitising data th
 
 When executed, although the data given will be in a different format than what is expected, it can still be interpreted and will have the same result. 
 ![image](https://user-images.githubusercontent.com/79100627/167542812-3fc519e7-e8b2-44c2-b2fb-4dbf47116298.png)
+
+## SQL (Structured Query Language) Injection
+
+SQL injection attack is that attack on a web application database server that causes malicious queries to be executed. When a web application communicates with a database using input from a user that hasn't been properly validated, there runs the potential of an attacker being able to steal, delete or alter private and customer data and also attack the web applications authentication methods to private or customer areas. This is why as well as SQLi being one of the oldest web application vulnerabilities, it also can be the most damaging 
+
+## What is Database?
+
+A database is a way electronically storing collections of data in an organised manner. A database is controlled by a DBMS which is an acronym for Database Management System, DBMS's fall into two camps **Relational** or **Non- Relational**. 
+
+With DBMS, you can have multiple databases, each containing its own set of related data. For example, you may have a database called "shop". Within this database, you want to store information about products available to purchase, users who have signed up to your online shop, and information about the orders you've received. You would store this information seperately in the database using something called tables, the tables are identified with a unique name for each one. You can see this structure in the diagram below, but you can also see how a business might have other separate databases to store staff information or the accounts team. 
+
+![image](https://user-images.githubusercontent.com/79100627/168383984-83d7528d-af0f-4d8e-984b-129c039c4e34.png)
+
+### What are the tables 
+
+A tables is made up of columns and rows, a useful way to imagine a table is like a grid with the columns going accross the top from left to right containing the name of the cell and the rows going from top to bottom with each one having the actual data. 
+
+### Columns 
+
+Each columns, better referred to as a field has a unique name per table. When creating a column, you also set the type of data it will contain, common ones being integer (numbers), strings (standard text) or dates. Some databases can contain much more complex data, such as geospatial, which contains location information. Setting the data type also ensures that incorrect information isn't stored, such as the string "hello world" being stored in a column meant for dates. If this happens, the database server will usually produce an error message. A column containing an integer can also have an auto-increment feature enabled; this gives each row of data a unique number that grows (increments) with each subsequent row, doing so creates what is called a **Key** field, a key field has to be unique for every row of data which can be used to find that exact row in SQL queries. 
+
+### Rows
+
+Rows or records are what contains the individual lines of data. When you add data to the table, a new row/record is created, and when you delete data, a row/record is removed. 
+
+### Relational Vs. Non-Relational Databases
+
+A relational database, stores information in tables and often the tables have shared information between them, they use columns to specify and define the data being stored and rows to actually store the data. The tables will often contain a column that has a unique ID (primary key) which will then be used in other tables to reference it and causes a relationship between the tables, hence the name **relational database** . 
+
+Non relational database sometimes called NoSQL on the other hand is any sort of database that does not use tables columns and rows to store the data, a specific database layout does not need to be constructed so each row of data can contain different information which can give more flexibility over a relational database. Some popular database of this type are MongoDB, Cassandra and ElasticSearch. 
+
+## What is SQL Injection?
+
+The point wherein a web application using SQL can turn into SQL Injection is when user-provided data gets included in the SQL query.
+
+### What does it look like?
+
+Take the following scenario where you've come across an online blog, and each blog entry has a unique id number. The blog entries may be either set to public or private depending on whether they are ready for public release. The URL for each blog entry may look something like 
+
+``` https://website.thm/blog?id=1```
+
+From the URL above, you can see that the blog entry been selected comes from the id parameter in query string. The web application needs to retrieve the article from the database and may use an SQL statement that looks something like the following 
+
+```SELECT * from blog where id=1 and private=0 LIMIT 1; ```
+
+From what you've learned in the previous task, you should be able to work out that SQL statement above is looking in the blog table for an article with the id number of 1 and the private column set to 0, which means it's able to be viewed by the public and limits the results to only one match. 
+
+As was mentioned at the start of this task, SQL injection is introduced when user input is introduced into the database query. In this instance, the id parameter from the query string is used directly in the SQL query 
+
+Lets pretend article id 2 is still locked as private, so it cannot be viewed on the website. We could now instead call the URL: 
+
+```https://website.thm/blog?id=2;--```
+
+Which would then, in turn, produce SQL statement:
+
+```SELECT * from blog where id=2;-- and private=0 LIMIT 1;```
+
+The semicolon in the URL signifies the end of SQL statement, and the two dashes causes everything afterwards to be treted as comment. By doing this, you're just running the query:
+
+```SELECT * from blog where id=2;--```
+
+Which will return the article with an id of 2 whether it is set to public or not.
+
+This was just one example of an SQL injection vulnerability of a type called In - Band SQL Injection; there are 3 types in total In-Band, Blind and Out Of Band, which we will discuss over the next tasks. 
+
+## IN-Band SQLi 
+
+### In-Band SQL injection
+
+In band SQL injection is easiest type to detect and exploit; In-Band just refers to the same method of communication being used to exploit the vulnerability and also receive the results, for example, discovering an SQL Injection vulnerability on a website page and then being able to extract data from the database to the same page. 
+
+### Error-Based SQL Injection
+
+This type of SQL Injection is the most useful for easily obtaining information about the database structure as error messages from the database are printed directly to the browser screen. This can often be used to enumerate a whole database. 
+
+### Union-Based SQL Injection
+
+This type of injection utilises the SQL UNION operator alongside a SELECT statement to return additional results to the page. This method is the most common way to extracting large amounts of data via an SQL injection vulnerability.
+
+The key to discovering error-based SQL Injection is to break the code's SQL query by trying certain characters until an error message is produced; these are most commonly single apostrophes (') or a quotation mark ("). 
+
+The first thing we need to do is return data to the browswer without displaying an error message. Firstly we will try the UNION operator so we can receive an extra result of our choosing. Try setting the mock browser id parameter to:
+
+```1 UNION SELECT 1```
+
+![image](https://user-images.githubusercontent.com/79100627/168390795-cd04524e-9c34-40d3-9854-0254202cf40c.png)
+
+This statement should produce an error message informing you that the UNION SELECT statement has a different number of columns than the original SELECT query. So let's try again but add another column
+
+```1 UNION SELECT 1,2```
+
+Same error again, so let's repeat by adding another column 
+
+```1 UNION SELECT 1,2,3``` 
+
+Success, the error message has gone, and the article is being displayed, but now we want to display our data instead of the article. The article is being displayed because it takes the first returned result somewhere in the web site's code and shows that. To get around that, we need the first query to produce no results. This can simply be done by changing the article id from 1 to 0 
+
+``` 0 UNION SELECT 1,2,3 ``` 
+
+![image](https://user-images.githubusercontent.com/79100627/168391252-97658fe0-8568-46da-b553-7ce501d8b5c7.png)
+
+You will now see the article just made up of the result from the UNION select returning the column values 1,2, and 3. We can start using these returned values to retrieve more useful information. First, we will get the database name that we have to access to: 
+
+``` 0 UNION SELECT 1,2,database() ```
+
+![image](https://user-images.githubusercontent.com/79100627/168391310-76896cb0-ecd9-4eba-9d38-aa4dfd092e92.png)
+
+You will now see where the number 3 was previously displayed; it now shows the name of database which is sqli_one
+
+```0 UNION SELECT 1,2,group_concat(table_name) FROM information_schema.tables WHERE table_schema = 'sqli_one'```
+
+![image](https://user-images.githubusercontent.com/79100627/168391940-457f97f5-9177-4ecf-9abe-931e47589af9.png)
+
+
+There are couple of new things to learn in this query. Firstly, the method group_concat() gets the specified colum (in our case, table_name) from multiple returned rows and puts it into one string seperated by commas. The next thing is **information_schema** database; every user of the database has access to this, and it contains information about all the databases and tables the user has access to. In this particular query, we are interested in listing all tables in the **sqli_one** database, which is article and staff_users. 
+
+As the first level aims to discover the Martin's password, the staff_users table is what is of intrest to us. We can utilise the information_schema database again to find the structure of this table using the below query. 
+
+```0 UNION SELECT 1,2,group_concat(column-name) FROM information_schema.columns WHERE table_name = 'staff_users'```
+
+This is similar to the previous SQL query. However, the information we want to retrieve has changed from table_name to column_name, the table we are querying in the information_schema database has changed from tables to columns, and we're searching for any rows where the **table_name** column has value of **staff_users**. 
+
+The query results provide three colums for the staff_users table: id, password, and username. We can use the username and password columns for our following query to retrieve the user's information
+
+![image](https://user-images.githubusercontent.com/79100627/168392347-544492da-4d3c-4e7a-a8eb-b2f042ae2a03.png)
+
+```0 UNION SELECT 1,2,group_concat(username,":",password SEPARATOR '<br>') FROM staff_users```
+
+Again we use the group_concat method to return all of the rows into one string and to make it easier to read. We've also added, ':', to split the username and password from each other. Instead of being separated by a comma, we've chosen the HTML <br> tag that forces each result to be a separate line to make for easier reading. 
+
+![image](https://user-images.githubusercontent.com/79100627/168392648-368b7850-983d-4dfe-b893-d2ae30a69763.png)
+
+## Blind SQLi - Authentication Bypass
+
+### Blind SQLi 
+
+Unlike In-Band SQL injection, where we can see the results of our attack directly on the screen, blind SQLi is when we get little to no feedback to confirm whether our injected queries were, in factm successful or not, this is because the error message have been disabled, but the injection still works regardless. It might surprise you that all we need is that little bit of feedback to successful enumerate a whole database. 
+
+### Authentication Bypass 
+
+One of the most straightforward Blind SQL injection techniques is when bypassing authentication methods such as login forms. In this instance, we aren't that intrested in retreiving data from the database; we just want to get past the login. 
+
+Login forms that are connected to database of users are often developed in such a way that the web application isn't interested in the content of the username and password but more whether the two make a matching pair in the user table. In basic terms, the web application is asking database " do you have a user with the username bob and password bob123?" and the database replies with either yes or no and depending on that answer, dictates whether the web application lets you proceed or not.
+
+Taking the above information into account, it's unnecessary to enumerate valid username/password pair. We just need to create a database query that replies with a yes/true
+
+To make this into query that always return as true, we can enter the following into the password field:
+
+```' OR 1=1;--```
+
+Which turns the SQL query into the following:
+
+```SELECT * from users where username='' and password='' OR 1=1;```
+
+## Blind SQLi- Boolean Based
+
+### Boolean Based 
+
+Boolean based SQL Injection refers to the response we recieve back from our injection attempts which could be a true/false, yes/no, on/off, 1/0 or any response which can only ever have two outcome. That outcome confirms to us that our SQL Injection payload was either successful or not. On the first inspection, you may feel like this limited response can't provide much information. Still, infact, with just these two responses, it's possible to enumerate whole database structure and contents
+
+Like previous levels, oru first task is to establish the number of columns in the user table, which we can achieve by using the UNION statement. Change the username value to the following: 
+
+```admin123' UNION SELECT 1;--```
+
+As the web application has responded with the value taken as false, we can confirm this is incorrect value of columns keep on adding more columns until we have a taken value of true. 
+
+```admin123' UNION SELECT 1,2,3;--```
+
+![image](https://user-images.githubusercontent.com/79100627/168395089-9f5ad0ab-3061-48c6-bef3-ee13843e92b2.png)
+
+Now that our number of columns has been established, we can work on the enumeration of the database. Our first task is discovering the database name. We can do this by using the built-in database() method and then using the like operator to try and find results that will return true status.
+
+![image](https://user-images.githubusercontent.com/79100627/168395270-1b1d6d9d-2585-4d67-a805-d8c30f776724.png)
+
+We get the true response because, in the like operator, we just have the value of %, which will match anything as it's the wildcard value. If we change the wildcard operator to a% you will see the response goes back to false, which confirms that the database name does not begin with the letter a. We can cycle through all the letters, numbers and characters such as - and _ until we discover a match.
+
+Now you move onto the next character of the database name for example, 'sa%',... 
+
+We've established the database name, which we can now use to enumerate table names using a similar method by utilising the information_schema database. Try setting the username to the following value:
+
+```admin123' UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'sqli_three' and table_name like 'a%';--```
+
+This query looks for results in the information_schema database in the tables table where the database name matches sqli_three , and the table name begins with the letter a. 
+
+```admin123' UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'sqli_three' and table_name='users';--```
+
+Lastly, we now need to enumerate the column names in the user table so we can properly search it for login credentials. Again using the information_schema database and the information we've already gained, we can start querying it for column names. 
+
+```admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='sqli_three' and TABLE_NAME='users' and COLUMN_NAME like '%a' and COLUMN_NAME !='id';```
+
+Repeating this process three times will enable you to discover the colums id, username and password
+
+```admin123' UNION SELECT 1,2,3 from users where username='admin' and password like 3845```
+
+
+## Blind SQLi -Time Based
+
+### Time-Based 
+
+A time based blind SQL Injection is very similar to the above boolean based, in that the same requests are sent, but there is no visual indicator of your quries being wrong or right this time. Instead, your indicator of a correct query is based on the time the query takes to complete. This time delay is introduced by using built-in methods such as SLEEP(x) alongside the UNION statement. The SLEEP() method will only ever get executed upon successful UNION SELECT statement 
+
+So for example, when trying to establish the number of columns in a table, you would use the following query:
+
+```admin123' UNION SELECT SLEEP(5);--```
+
+If there was no pause in the response time, we know that the query was unsuccessful, so like on previous tasks, we add another column: 
+
+```admin123' UNION SELECT SLEEP(5),2;--```
+
+This payload should have produced a 5 second time delay, which confirms the successful execution of the UNION statement and that there are two columns.
+
+You can now repeat enumeration process from the Boolean based SQL Injection, adding the SLEEP() method into the UNION SELECT statement.
+
+```referrer=admin123' UNION SELECT SLEEP(5),2 where database() like 'u%';-- ```
+
+
+
+
+
+
+
