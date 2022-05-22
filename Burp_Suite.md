@@ -187,6 +187,153 @@ With the request captured in the proxy, we can now change the email field to be 
 
 ![image](https://user-images.githubusercontent.com/79100627/169673896-50aad28f-e66b-41c9-b4a1-1bc7f6d1693a.png)
 
+## Burp Suite Repeater 
+
+Burp Suite Reapeater allows us to craft and/or relay intercepted requests to a target at will. In layman's terms, it means we can take a request captured in the Proxy, edit it, and send the same requeset repeatedly as many times as we wish. Alternatively, we could craft requests by hand, much as we would from the CLI (Command Line Interface), using tool such as cURL to build and send requests.
+
+The ability to edit and resent the same request multiple times makes Repeater ideal for any kind of manual poking around at an endpoint, providing us with a nice Graphical User Interface (GUI) for writing the request payload and numerous views (including a rendering engine for a graphical view) of the response so that we can see the results of our handiwork in action.
+
+The Repeater interface can be split into six main sections --an annotated diagram can be found below the following bullet points:
+
+1. At the very top left of the tab, we have a list of Repeater requests. We can have many different requests going through Repeater: each time we send a new request to Repeater, it will appear up here.
+2. Directly underneath the request list, we have the controls for the current request. These allow us to send a request, cancel a hanging request, and go forwards/backwards in the request history.
+3. Still on the left-hand side of the tab, but taking up most of the window, we have the request and response view. We edit the request in the Request view then press send. The response will show up in the Response view. 
+4. Above the request/response section, on the right-hand side, is a set of options allowing us to change the layout for the request and response views. By default, this is usualy side-by-side (horizontal layout, as in the screenshot); however, we can also choose to put them above/below each other (vertical layout) or in separate tabs (combined view).
+5. At the right-hand side of the window, we have the inspector, which allows us to break requests apart to analyse and edit them in a slightly more intuitive way than with the raw editor. We will cover this in a later task.
+6. Finally, above the Inspector we have our target. Quite simply, this is the IP address or domain to which we are sending requests. When we send requests to Repeater from other parts of Burp Suite, this will be filled in automatically. 
+
+![image](https://user-images.githubusercontent.com/79100627/169707384-fe6b028a-a88c-42e9-966a-c170b96e2464.png)
+
+## Basic usage of Repeater 
+
+Whilst we can craft requests by hand, it would be much more common to simply capture a request in the Proxy, then send that through to Repeater for editing/resending 
+
+With a request captured in the proxy, we can send to repeater either by right-clicking on the request and choosing "Send to Repeater" or by pressing ```Ctrl + R```.
+
+Switching back to the Repeater, we can see that our request is now available:
+
+![image](https://user-images.githubusercontent.com/79100627/169707510-efd2f06a-b89d-4a9d-b028-a40a9a0a3016.png)
+
+The target and Inspector elements are now also showing information; however, we do not yet have a response. When we click "Send", the Response section quickly populates 
+
+![image](https://user-images.githubusercontent.com/79100627/169707572-70b96e8f-ea55-4045-9de0-33994910c45e.png)
+
+If we want to change anything about the request, we can simply type in the Request window and press "Send" again; this will update the Response on the right. For example, changing the "Connection header to ```open``` rather than ```close``` results in a response "Connection" header with a value of ```keep-alive```:
+
+![image](https://user-images.githubusercontent.com/79100627/169707726-d6214759-daa1-4220-aded-01194e950745.png)
+
+## Repeater Views 
+
+Repeater offers us various ways to present the responses to our requests -- these range from hex output all the way up a fully rendered version of the page. We can see the available options by looking above the response box: 
+
+![image](https://user-images.githubusercontent.com/79100627/169707788-91e30551-b54f-411e-bb21-ecd23247aaf6.png)
+
+We have four display options here:
+
+1. Pretty: This is the default option. It takes the raw response and attempts to beautify it slightly, making it easier to read.
+2. Raw: The pure, un-beautified response from the server
+3. Hex: This view takes the raw response and gives us a byte view of it -- especially useful if the reponse is a binary file 
+4. Render: The render view renders the page as it would appear in your browser. Whilst not hugely useful given that we would usually be interested in the source code when using Repeater, this is still a neat trick 
+
+## Repeater Inspector 
+
+In many ways, Inspector is entirely supplementary to the request and response fields of the Repeater window. If you understand how to read and edit HTTP requesets, then you may find that you rarely use Inspector at all.
+
+That said, it is a superb way to get prettified breakdown of the requests and responses, as well as for experimenting to see how changes made using the higher-level Inspector affect the equivalent raw versions.
+
+Inspector can be used in Proxy as well as Repeater. In both cases, it appears over at the very right hand side of the window and gives us a list of the components in the request and response: 
+
+![image](https://user-images.githubusercontent.com/79100627/169708474-464b9413-f687-46c9-8c2e-7b1594d22c2b.png)
+
+Of these, the request sections can nearly always be altered, allowing us to add, edit and delete items. For example, in the Request Attributes section, we can edit the parts of the request that deal with location, method and protocol; e.g. changing the resource we are looking to retrieve, altering the request from GET to another HTTP method, or switching protocol from HTTP/1 to HTTP/2:
+
+![image](https://user-images.githubusercontent.com/79100627/169708525-b2a4f553-ec1e-4155-8eb7-66f7ed36f9d0.png)
+
+The other sections available for viewing and/or editing are:
+
+- Query parameters, which refers to dat abeing sent to the server in the URL. For example, in a GET request to ```https://admin.tryhackme.com/?redirect=false```, there is a query parameter called "redirect" with a value of "false" 
+- Body Parameters, which do the same thing as Query Parameters, but for POST requests. Anything that we send as data in a POST request will show up in this section, once again allowing us to modify the parameters before re-sending.
+- Request Cookies contain, as you may expect, a modifiable list of the cookies which are being sent with each requeset. 
+- Request Headers allow us to view, access, and modify (including outright adding or removing) any of the headers being sent with our requests. Editing these can be very useful when attempting to see how a webserver will respond to unexpected headers.
+- Request Headers show us the header that the server sent back in response to our requeset. These cannot be edited (as we can't control what headers the server returns to us!). Note that this section will only show up after we have sent the request and received a response. 
+
+These components can all be found as text within the request and response sections; however, it can be nice to see them in the tabular format offered by Inspector. It is well worth adding, removing and editing headers in Inspector to get a feel for how the raw version changes as you do so. 
+
+
+## Example 
+
+Repeater is best suited for the kind of task where we need to send the same request numerous times, usually with small changes in between requests. For example, we may wish to manually test for SQL Injection vulnerability, attempt to bypass a web application firewall filter or simply add or change parameters in a form submission
+
+![image](https://user-images.githubusercontent.com/79100627/169708930-c6d8d643-444d-4606-95b7-fb8194ad3ad5.png)
+
+## SQLi with Repeater 
+
+This task contains an extra mile challenge, which means that it is a slightly harder, real-world aplication for Burp Repeater. 
+
+The breif will follows:
+
+- There is a Union SQL Injection vulnerability in the ID parameter of the ```/about/ID``` endpoint. Find this vulnerability and execute an attack to retrieve the notes about the CEO stored in the database
+
+Let's start by capturing request to /about/2 in the Burp Proxy
+
+![image](https://user-images.githubusercontent.com/79100627/169709783-c17d9fe8-18b4-4ca7-bb15-e685b2315238.png)
+
+![image](https://user-images.githubusercontent.com/79100627/169709821-e84fa3b8-158f-4142-879b-329b082c1d9f.png)
+
+Now that we have requested primed, let's confirm that a vulnerability exist. Adding a single apostrophe ```'``` is usually enough to cause the server to error when a simple SQLi is present, so, either using Insepctor or by editing the request path manually, add apostrophe after the "2" at the end of the path and send the request 
+
+![image](https://user-images.githubusercontent.com/79100627/169709881-697d6c00-9c4a-4eb4-8a2b-44aad712d5c5.png)
+
+![image](https://user-images.githubusercontent.com/79100627/169709941-138f5842-bb7d-46a1-89ec-09b453141e1c.png)
+
+You should see that the server responds with a "500 Internal Server Error" indicating that we successfully broke the query 
+
+If we look through the body of the server response, we see something very intresting at around line 40 that the server is telling us the query we tried to execute.
+
+![image](https://user-images.githubusercontent.com/79100627/169710066-95f6faca-946e-4ab0-8382-4ca73efb11f6.png)
+
+This is an extremely useful error message which the server should absolutely not be sending us, but fact that we have it makes our job significantly more straightfoward. 
+
+The message tell us couple things that will be invaluable when exploiting this vulnerability:
+- The database table we are selecting from is called people. 
+- The query is selecting five columns from the table: ```firstName```, ```lastName```, ```pfpLink```, ```role```, and ```bio```. We can guess where these fit into the page, which will be helpful for when we choose where to place our responses
+
+Although we have managed to cut out a lot of the enumeration required here, we still need to find the name of our target column.
+
+As we know the table name and the number of rows, we can use union query to select the column names for the people table from the columns tables in the ```information_schema``` default database. 
+
+A simple query for this is as follows:
+
+```/about/0 UNION ALL SELECT column_name,null,null,null,null FROM information_schema.columns WHERE table_name="people"```
+
+This creates a union query and selects our target then four null columns (to avoid the query error out). Notice that we also changed the ID that we are selecting from 2 to 0. By setting the ID to an invalid number, we ensure that we don't retrieve anything with the original (legitimate) query; this means that the first row returned from the database will be our desired response from the injected query. 
+
+Looking thorugh the returned response, we can see that the first column name ```id``` has been inserted into the page title:
+
+![image](https://user-images.githubusercontent.com/79100627/169710337-f5f18c49-d886-476a-8c78-14f62f81ef18.png)
+
+We have successfully pulled the first column name out of the database, but we now have a problem. The page is only displaying the first matching item -- we need to see all of the matching items 
+
+Fortunately, we can use our SQLi to group the results. We can still only retrieve one result at a time, but by using ```group_concat()``` function, we can amalgamate all of the column names into a single output: 
+
+```/about/0 UNION ALL SELECT group_concat(column_name),null,null,null,null FROM information_schema.columns WHERE table_name="people"```
+
+![image](https://user-images.githubusercontent.com/79100627/169710479-e1e0d036-0b13-40ca-a425-a41882f93027.png)
+
+We have successfully identified eight columns in this table: ```id```,```firstName```,```lastName```,```pfpLink```,```role```,```shortRole```,```bio```, and ```notes```. 
+
+Considering our task, it seems a safe bet that our target column is ```notes```.
+
+Finally, we are ready to take the flag from this database -- we have all of the information that we need:
+
+- The name of the table: people.
+- The name of the target column: notes.
+- The ID of CEO is 1; this can be found simply by clicking on Jameson Wolfe's profile on the ```/about/``` page and checking the ID in URL 
+
+Query should be 
+```0 UNION All SELECT notes,null,null,null,null FROM people WHERE id=1```
+
+![image](https://user-images.githubusercontent.com/79100627/169710622-aeef12b2-b3a2-4fd1-9d19-aef821e0c0fe.png)
 
 
 
