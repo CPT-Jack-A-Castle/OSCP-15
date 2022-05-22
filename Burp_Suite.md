@@ -145,6 +145,48 @@ In addition to giving us the option to modify our regular web browser to work wi
 
 Whilst this may seem ideal, it is not as commonly used as the process detailed in the previous few tasks. People tend to stick with their own borwser as it gives them a lot more customisability; however, both are perfectly valid choices. 
 
+## Scoping and Targeting
+
+It can get extremely tedious having Burp capturing all of our traffic. When it logs everything (including traffic to sites we aren't targeting), it muddies up logs we may later wish to send to clinets. In short, allowing Burp to capture everything can quickly become a massive pain. 
+
+What's the solution? Scoping
+
+Setting a scope for the project allows us to define what gets proxied and logged. We can restrict Burp Suite to only target the web application(s) that we want to test. The easiest way to do this is by switching over to the "Target" tab, right-clicking our target from our list on the left then choosing "Add To Scope". Burp will then ask us whether we want to stop logging anything which isn't in scope 
+
+![image](https://user-images.githubusercontent.com/79100627/169673302-e778ccf7-740d-481c-929c-ddda24df98f2.png)
+
+We can now check our scope by switching to the "Scope" sub-tab
+
+The scope sub-tab allows us to control what we are targeting by either Including or Excluding domains / IPs. This is very powerful section, so it's well worth taking the time to get accustomed to using it.
+
+We just chose to disable logging for out of scope traffic, but proxy will still be intercepting everything. To turn this off, we need to go into Proxy options sub-tab and select "And URL Is in target scope" from the Intercept Client Requests Section: 
+
+## Site Map and Issue Definitions
+
+Control of the scope may be most useful aspect of the Target tab, but it's by no means the only use for this section of Burp.
+
+There are three sub tabs under target:
+
+- Site map: allows us to map out the apps we are targeting in a tree structure. Every page that we visit will show up here, allowing us to automatically generate a site map for the target simply by browsing around the web app. Burp Pro would also allow us to spider the targets automatically (i.e. look through every page for links and use them to map out as much of the site as-is publicly accessible using the links between pages); however, with Burp community, we can still use this to accumulate data whilst we perform our initial enumeration steps. The Site map can be especially useful if we want to map out an API, as whenever we vist a page, any API endpoints that the page retrieves data from whilst loading will show up here. 
+- Scope: We have already seen the Scope sub-tab -- it allows us to control Burp's target scope for the project.
+- Issue Definitions: Whilst we don't have access to the Burp Suite vulnerability scanner in Burp Community, we do still have access to a list of all the vulnerabilities it looks for. The Issue Definitions section gives us a huge list of web vulnerabilities (complete with description and references) which we can draw from should we need ciations for a report help describing a vulnerability  
+
+## Example Attack 
+
+![image](https://user-images.githubusercontent.com/79100627/169673739-21175bf0-0e00-41cd-976a-df5f50d4de71.png)
+
+In real world web app pentest, we would test this for a variety of things: one of which would be Cross-Site Scripting (or XSS). If you have not yet encountered XSS, it can be though of as injecting a client-side script (usually in Javascript) into a webpage in such as way that it executes. There are various kinds of XSS -- the type that we are using here is referred to as "Reflected" XSS as it only affects the person making the web request. 
+
+![image](https://user-images.githubusercontent.com/79100627/169673814-c2838994-6e81-4163-a0b6-b360d58e04ab.png)
+
+![image](https://user-images.githubusercontent.com/79100627/169673829-e27001e9-073c-491d-b65d-21b2bd8cc911.png)
+
+With the request captured in the proxy, we can now change the email field to be our very simple payload from above: ```<script>alter("Succ3ssful XSS")</script>```. After pasting payload, we need to select it, then URL encode it with the ```Ctrl+U``` Shortcut to make it safe to send.
+
+![image](https://user-images.githubusercontent.com/79100627/169673875-c97bd0a8-29e9-4f60-b59c-23fa173ce0a6.png)
+
+![image](https://user-images.githubusercontent.com/79100627/169673896-50aad28f-e66b-41c9-b4a1-1bc7f6d1693a.png)
+
 
 
 
