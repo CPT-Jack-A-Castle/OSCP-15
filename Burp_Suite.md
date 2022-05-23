@@ -335,6 +335,68 @@ Query should be
 
 ![image](https://user-images.githubusercontent.com/79100627/169710622-aeef12b2-b3a2-4fd1-9d19-aef821e0c0fe.png)
 
+## Burp Suite Intruder 
 
+Intruder allows us to automate requests, which is very useful when fuzzing or bruteforcing. 
+
+## What is Intruder?
+
+Intruder is Burp Suite's in-built fuzzing tool. It allows us to take a request (usually captured in the Proxy before being passed into Intruder) and use it as template to send many more requests with slightly altered values automatically. For example, by capturing a request containing a login attempt, we could then configure Intruder to swap out the username and password fields for values from a wordlist, effectively allowing us to brutefoce the login form. Similarly, we could pass in a fuzzing wordlist and use Intruder to fuzz for subdirectories, endpoints, or virtual hosts. This functionality is very similar to that provided by command-line tools such as Wfuzz or Ffuf.
+
+In short, as a method for automating reuqests,Intruder is extremly powerful -- there is just one problem: to access the full speed of Intruder, we need Burp Professional. We can still use Intruder with Burp Community, but it is heavily rate-limited. The speed restriction means that many hackers choose to use other tools for fuzzing and bruteforcing.
+
+![image](https://user-images.githubusercontent.com/79100627/169912164-3787e277-233f-4887-9359-282ebf6c7507.png)
+
+The first view we get is a relatively sparse interface that allows us to choose our target. Assuming that we sent a request in from Proxy (by using ```Ctrl + I``` or right-clicking and selecting "Send to Intruder"), this should already be populated for us. 
+
+There are four other Intruder sub-tabs:
+- Positions allows us to select Attack Type, as well as configure where in the request template we wish to insert our payloads.
+- Payloads allows us to select values to insert into each of the positions we defined in the previous sub-tab. For example, we may choose to load items in from wordlist to serve as payloads. How these get inserted into the template depends on the attack type we chose in the Position tab. There are many payload types to choose from (anything from a simple wordlist to regexes based on responses from the server). The Payloads sub-tab also allows us to alter Intruder's behaviour with regards to payloads; for example, we can define pre-processing rules to apply to each payload (e.g. add a prefix or suffix, match and replace, or skip if the payload matches a defined regex) 
+- Resource Pool is not particularly useful to us in Burp Community. It allows us to divide our resources between tasks. Burp Pro would allow us to run various types of automated tasks in the background, which is where we may wish to manually allocate our available memory and processing power between these automated tasks and Intruder. Without access to these automated tasks, there is little point in using this, so we wont devote much time to it.
+- As with most of other Burp tools, Intruder allows us to configure attack behaviour in Options sub-tab. The settings here apply primarily to how Burp handles results and how Burp handles the attack itself. For example, we can choose to flag requests that contain specified pieces of text or define how Burp responds to redirect (3xx) reponses. 
+
+Fuzzing is when we take a set of data and apply it to a parameter to test functionality or to see if something exists. For example, we may choose to "fuzz for endpoints" in a web application; this would involve taking each word in a wordlist and adding it to the end of a request to see how the webserver is responds 
+```http://10.10.245.17/WORD_GOES_HERE```
+
+## Intruder Positions 
+
+When we are looking to perform an attack with Intruder, the first thing we need to do is look at positions. Positions tell Intruder where to insert payloads 
+
+![image](https://user-images.githubusercontent.com/79100627/169913488-82218b42-5b62-4122-bf65-0efce0cc6bac.png)
+
+Notice that Burp will attempt to determine the most likely places we may wish to insert a payload automatically --these are highlighted in greed and surronded by silcrows.
+
+On the right-hand side of the interface, we have the buttons labelled "Add", "Clear", and "Auto"
+- Add let us define new positions by highlighting them in the editor and clicking the button.
+- Clear removes all defined positions, leaving us with a blank canvas to define our own.
+- Auto attempts to select most likely positions automatically; this is useful if we cleared the default positions and want them back. 
+
+## Attack Types 
+- Sniper 
+- Battering ram
+- Pitchfork
+- Cluster bomb
+
+## Sniper 
+
+Sniper is the first and most common attack type.
+
+When conducting a sniper attack, we provide one set of payloads. For example, this could be a single file containing a wordlist or a range of numbers. From here on out, we will refer to a list of items to be slotted into requests using the Burp Suite terminology of a "Payload Set". Intruder will take each payload in a payload set and put it into each defined position in turn 
+
+![image](https://user-images.githubusercontent.com/79100627/169913953-968d22a0-74aa-4765-8092-25957060f411.png)
+
+There are two positions defined here, targeting the ```username``` and ```password``` body parameters. 
+
+In a sniper attack, Intruder will take each position and subsitute each payload into it in turn.
+
+For example, let's assume we have a wordlist with three words in it: ```burp```, ```suite```, and ```intruder```. 
+
+With the two positions that we have above, Intruder would use these words to make Six requests 
+
+![image](https://user-images.githubusercontent.com/79100627/169914148-13004b73-6732-4cf8-9c06-17c317d186d8.png)
+
+Notice how Intruder starts with the first position (```username```) and tries each our payloads, then moves to the second position and tries the same payloads again. We can calculate the number of requests that Intruder Sniper will make as ```requests = numberOfwords * numberOfPositions```.
+
+This quality makes sniper very good for single-position attacks (e.g. password bruteforce if we know the username or fuzzing for API endpoints).
 
 
