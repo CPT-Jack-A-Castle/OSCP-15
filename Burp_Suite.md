@@ -413,3 +413,119 @@ With the two positions that we have above, Intruder would use the three words fr
 
 As can be seen in hte table, each item in our list of payloads gets put into every position for each requests. True to the name, Battering ram just throws payloads at the target to see what sticks.
 
+## Pitchfork 
+
+After Sniper, Pitchfork is the attack type you are most likely to use. It may help to think of Pitchfork as being likely to use. It may help to think of Pitchfork as being like having numerous Snipers running simultaneously. Where Sniper uses one payload set (which it uses on every position simultaneously), Pitchfork uses one payload set per position (up to maximum of 20) and iterates through them all at once. 
+
+This type of attack can take a little time to get your head around, so let's use our bruteforce example from before, but this time we need two wordlists:
+
+- Our first wordlist will be usernames. It contains three entries: ```joel```,```harriet```,```alex```. 
+- Let's say that Joel, Harriet, and Alex have had their password leaked: we know that Joel's password is ```J03l```, Harriet's password is ```Emma1815```, and Alex's password is ```Sk1ll```
+
+We can use these two lists to perform a pitchfork attack on the login form from before. The process for carrying out this attack will not be covered in this task, but you will get plenty of opportunities to perfrom attacks like this later! 
+
+When using Intruder in pitchfork mode, the requests made would look something like this:
+
+![image](https://user-images.githubusercontent.com/79100627/170142417-1a6c207f-7745-4334-b5d3-605c819502ac.png)
+
+See how Pitchfork takes the first item from each list and puts them into the request, one per position? It then repeats this for the next request: taking the second item from each list and subsituting it into the template. Intruder will keep doing this until one (or all) of the lists run out. Ideally, our payload sets should be identical lengths when working in Pitchfork, as Intruder will stop testing as soon as one of the list is complete. For example, if we have two lists, one with 100 lines and one with 90 lines, Intruder will only make 90 requests, and the final ten items in the first list will not get tested. 
+
+## Cluster Bomb 
+
+Like Pitchfork, Cluster bomb allows us to choose multiple payload sets: one per position, up to a maximum of 20; however, whilst Pitchfork iterates through each payload set simultaneously, Cluster bomb iterates through each payload set individually, making sure that every possible combination of payloads is tested. 
+
+Again, the best way to visualise this is with an example.
+
+Let's use the same wordlists as before:
+- Usernames: ```joel```, ```harriet```, ```alex```.
+- Passwords: ```j03l```, ```Emma1815```, ```Sk1ll```.
+
+But this time, let's assume that we don't know which password belongs to which user. We have three users and three passwords, but we don't know how to match them up. In this case, we would use a cluster bomb attack: this will try every combination of values. The requests table for our username and password positions looks something like this:
+
+![image](https://user-images.githubusercontent.com/79100627/170143417-ce7ae42d-832f-49ff-9b08-8d1954565fb8.png)
+
+Cluster Bomb will iterate through every combination of the provided payload sets to ensure that every possibility has been tested. This attack-type can create a huge amount of traffic (equal to the number of lines in each payload set multiplied together), so be careful! Equally, when using Burp Community and its Intruder rate-limiting, be aware that a Cluster Bomb attack with any moderately sized payload set will take an icredibly long time. 
+
+That said, this is another extremely useful attack type for any kind of credential bruteforcing where a username isn't known. 
+
+## Intruder Payloads
+
+Switch over the "Payloads" sub-tab; this is split into four sections:
+
+- The Payload Sets section allows us to choose which position we want to configure a set for as well as what type of payload we would like to use. 
+  - When we use attack type that only allows for a single payload set (i.e. Sinper or Battering Ram), the dropdown menu for "Payload Set" will only have one option, regardless of how many positions we have defined.
+  - If we are using one of the attack types that use multiple payload sets (i.e. Pitchfork or Cluster Bomb), then there will be one item in the dropdown for each position. Note: Multiple positions should be read from top to bottom, then left to right when being assigned numbers in the "Payload set" dropdown. For example, with two positions (```username=pentester&password=Expl01ted```), the first item in the payload set dropdown would refer to the username field, and the second would refer to the password field. 
+
+The second dropdown in this section allows us to select "payload type". By default, this is a "Simple list" -- which, as the name suggests, lets us load in a wordlist to use. There are many other payload types available -- some common ones include ```Recursive Grep```, ```Numbers```, and ```Username generator```. It is well worth persuing this list to get a feel for the wide range of options available. 
+
+- Payload Options differ depending on the payload type we select for the current payload set. For example, a "Simple List" payload type will give us a box to add and remove payloads to and from set: 
+
+![image](https://user-images.githubusercontent.com/79100627/170144494-23c2dec5-25d8-4fe7-bd3e-c73096bc59f0.png)
+
+We can do this maually using "Add" text box, paste lines in with "Paste", or "Load..." from a file. The "Remove" button removes the currently selected line only. The "Clear" button clears the entire list. Be warned: loading extremely large lists in here can cause Burp to crash
+
+By contrasts, the options for ```Numbers``` payload type allows us to change options such as the range of numbers used and the base that we are working with.
+
+- Payload Processing allows us to define rules to be applied to each payload in the set before being sent to the target. For example, we could capitalise every word or skip the payload if it matches a regex. You may not use this section particularly, but you will definitely appreciate it when you do need it! 
+
+- Finally, we have the Payload Encoding section. This section allows us to override the default URL encoding options that are applied automatically to allow for the safe transmission of our payload. Sometimes it can be beneficial to not URL encode these standard "unsafe" characters, which is where this section comes in. We can either adjust the list of characters to be encoded or outright uncheck the "URL-encode these characters" checkbox. 
+
+## Example 
+
+![image](https://user-images.githubusercontent.com/79100627/170145533-a67e9ecd-53f7-416d-8ff5-447c2ed9e021.png)
+
+This is fairly typical login portal. Looking at the source code for the form, we can see that there are no protective measures in place
+
+This lack of protective measures means that we could very easily attack this form using a cluster bomb attack for a bruteforce. 
+
+But, there is much easier option available. Attached to this task is a list of leaked credential for Bastion Hosting employees. 
+
+Bastion Hosting was hit with a cyper attack three months ago. The attack resulted in all of their employee usernames, emails, and plaintext password being leaked. Employees were told to change their passwords immediately; however, maybe one or two of them didn't listen
+
+As we have a list of known usernames, each associated with a password, we can avoid straight bruteforce and instead use a credential stuffing attack. 
+
+Navigate to the website and capture the request
+
+![image](https://user-images.githubusercontent.com/79100627/170146617-218082da-e3f8-4487-9909-3d26f388ac89.png)
+
+Send the request from the Proxy to Intruder 
+
+![image](https://user-images.githubusercontent.com/79100627/170146737-61099ef0-b31d-40b6-a6d2-2d61f76615bd.png)
+
+Looking in the "Positions" sub-tab, we should see that auto-selection should have chosen the username and password parameters, so we don't need to do anything else in terms of defining our positions. if you have already visited certain other pages on the site, then you may have a session cookie. If so, this will also be selected -- make sure to clear your positions and select only the username and password fields if this happens to you. 
+
+We also need the Attack type to be "Pitchfork":
+
+Let's switch over to the "Payloads" sub-tab. We should find that we have two payload sets available:
+
+![image](https://user-images.githubusercontent.com/79100627/170148220-23d442b4-9fc6-4f7a-a7b7-63e72dc532a8.png)
+
+Hit the Attack
+
+Once the attack has completed, we will be presented with a new window giving us the results but we have a new problem. Burp sent 100 requests: How are we suppose to know which one(s) if any, are valid?
+
+The most common solution to this problem is to use the status code of the response to differentiate between successful or unsuccessful login attempts; this only works if there is a difference in the status codes, however. Ideally, successful login requests would give us a 200 response code, and failed login reuqests would provide us with 401; however, in many cases we are just given 302 redirect for all requests instead.
+
+Solution is out 
+
+The next most common solution is to use the length of the responses to identify differences between them. For example, a successful login attempt may have response with 400 bytes in it, whereas unsuccessful login attempt may yield with 600 bytes response.
+
+![image](https://user-images.githubusercontent.com/79100627/170148630-d813a608-2ec5-4da3-b709-a04abb394b15.png)
+
+## Challenge 
+
+In the previous task, we gained access to the support system. Now it's time to see what we can do with it!
+
+The home interface shows us a table of tickets -- if we click on any of the rows in the table, we get redirected to a page where we can view the full ticket. Looking at the URL; we can see that these pages are numbered:
+```http://10.10.120.245/support/ticket/NUMBER```
+
+So what does this mea?
+
+The numbering means that we know the tickets aren't being identified by hard to guess IDs -- they are simply assinged an integer 
+
+What happens if the intruder fuzz the ```/support/ticket/Number``` endpoint? One of two things will happen
+
+1. The endpoint has been setup correctly only to allow us to view tickets that are assigned to our current user, or 
+2. The endpoint has not had the correct access controls set, which would allow us to read all of exisiting tickets! if this is the case, then a vulnerability called (IDOR) Insecure Direct Object Reference) is present 
+
+
