@@ -399,4 +399,17 @@ Notice how Intruder starts with the first position (```username```) and tries ea
 
 This quality makes sniper very good for single-position attacks (e.g. password bruteforce if we know the username or fuzzing for API endpoints).
 
+## Battering Ram
+
+Like Sniper, Battering ram takes one set of payloads (e.g. wordlist). Unlike Sniper, the Battering ram puts the same payload in every position rather than in each position in turn. 
+
+![image](https://user-images.githubusercontent.com/79100627/170092149-225ec2d2-4ac7-40e7-87af-54c1248aa677.png)
+
+If we use Battering ram to attack this, Intruder will take each payload and subsitute it into every position at once. 
+
+With the two positions that we have above, Intruder would use the three words from before (```burp```, ```suite```, and ```intruder```) to make three requests:
+
+![image](https://user-images.githubusercontent.com/79100627/170092368-0d7beb7a-58ca-4b98-a5e7-ee9955cd0cae.png)
+
+As can be seen in hte table, each item in our list of payloads gets put into every position for each requests. True to the name, Battering ram just throws payloads at the target to see what sticks.
 
