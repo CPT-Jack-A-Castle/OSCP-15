@@ -528,4 +528,69 @@ What happens if the intruder fuzz the ```/support/ticket/Number``` endpoint? One
 1. The endpoint has been setup correctly only to allow us to view tickets that are assigned to our current user, or 
 2. The endpoint has not had the correct access controls set, which would allow us to read all of exisiting tickets! if this is the case, then a vulnerability called (IDOR) Insecure Direct Object Reference) is present 
 
+![image](https://user-images.githubusercontent.com/79100627/170167571-3c7c1d58-f58f-4103-a069-7796d1e90f83.png)
+
+![image](https://user-images.githubusercontent.com/79100627/170167651-523732de-7fd9-4fc8-a343-1e8cf8e16860.png)
+
+## CSRF Token Bypass
+
+Let's start by catching a request to ```http://10.10.196.123/admin/login/``` and reviewing the response:
+
+![image](https://user-images.githubusercontent.com/79100627/170167939-77e3eb9c-63a2-47e3-8869-181106d6f7f7.png)
+
+We have the same username and password fields as before, but now there is also a session cookie set in the response, as well as a CSRF (Cross-Site Request Forgery) token included in the form as a hidden field. If we refresh the page, we should see that both of these change with each request: this means that we will need to extract valid values for both every time we make a request. 
+
+In other words, every time we attempt to log in, we will need unique values for the session cookie and ```loginToken``` hidden from input 
+
+Enter: Macros.
+
+In many cases, we could do this kind of thing using a payload type called "Recursive Grep", which would be a lot easier than what we're going to have to do here. Unfortunately, because the web app redirects us back to the login page rather than simply showing us both of our target parameters, we will need to do this the hard way. Specifically, we will have to define a "macro" (i.e. short set of repeated actions) to be executed before each request. This will grab a unique session cookie and matching login token, then subsitute them into each request of our attack. 
+
+![image](https://user-images.githubusercontent.com/79100627/170173887-bd0ebcb2-0d11-4758-82e7-eb949ebe5847.png)
+
+- Select the attack type "Pitchfork"
+- Clear all the predefined position and select only the username and password form field
+
+![image](https://user-images.githubusercontent.com/79100627/170174112-df2496fd-ada2-4039-8237-c9920041abbd.png)
+
+Now switch over the Payloads sub-tab and load in the same username and password wordlist for the support login attack 
+
+With the username and password parameters handled, we now need to find a way to grab the ever-changing loginToken and session cookie. Unfortunately, Recursive Grep won't work here due to the redirect response, so we can't do this entirely within Intruder 
+
+Macros allow us to perform the same set of actions repeatedly. In this case, we simply want to send a GET request to ```/admin/login/```
+
+Fortunately, setting this up is a very easy process
+- Switch over to the "Project Options" tab, then the "Sessions" sub-tab.
+- Scroll down to the bottom of the sub-tab to the "Macros" section and click the "Add button"
+- The menu that appears will show us our request history. If there isn't GET request to ```http://10.10.196.123/admin/login/``` in the list already, navigate to this location in your browser and you should see a suitable request appear in the list.
+- With the request selected click Ok.
+- Finally give the macro a suitable name, then click "OK" again to finish the process.
+
+![image](https://user-images.githubusercontent.com/79100627/170176907-09b222b2-0ba2-473b-832c-e7dbdf2b3f05.png)
+
+Now that we have a macro defined, we need to set Session Handling rules that define how the maccro should be used.
+
+- Still in the "Sessions" sub-tab of Project Options, scroll up to the "Session Handling Rules" section and choose to "Add" a new rule.
+- A new window will pop up with two tabs in it: "Details" and "Scope". We are in the Details tab by default.
+- Fill in an appropriate description, then switch over to the scope tab 
+- In the "Tools Scope" section, deselect every checkbox other than Intruder -- we do not need this rule to apply anywhere else.
+- In the "URL Scope" section, choose "Use suite scope"; this will set the macro to only operate on sites that have been added to the global scope(as was discussed in Burp Basics). If you have not set a global scope, keep the "Use custom scope" option as default and add ```http://IPaddress``` to the scope in this section.
+
+Now we need to switch back over to the Details tab and look at the "Rule Actions" section.
+
+- click the "Add" button == this will cause a dropdown menu to dppear with a list of actions we can add.
+- Select "Run a Macro" from this list.
+- In the new window that appears, select the macro we created eariler
+
+![image](https://user-images.githubusercontent.com/79100627/170177796-6f216644-2729-43c3-95b5-8d2333271412.png)
+![image](https://user-images.githubusercontent.com/79100627/170178264-c33dea3a-01dd-44a3-b596-00714d4bfdc6.png)
+
+![image](https://user-images.githubusercontent.com/79100627/170180649-b03ec09a-2cce-4cfd-88d1-0bd632b0f6d2.png)
+
+
+
+
+
+
+
 
