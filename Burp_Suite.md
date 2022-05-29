@@ -587,10 +587,119 @@ Now we need to switch back over to the Details tab and look at the "Rule Actions
 
 ![image](https://user-images.githubusercontent.com/79100627/170180649-b03ec09a-2cce-4cfd-88d1-0bd632b0f6d2.png)
 
+## Burp Suite Other Modules
+
+The Burp Suite Decoder module allows us to manipulate data. As the name suggests, we can decode information that we capture during an attack, but we can also encode data of our own, ready to be sent to the target. Decoder also allows us to create hashsums of data, as well as providing Smart Decode feature which attempts to decode provided data recursively until it is back to being plaintext (like the "Magic" function of Cyberchef). 
+
+The Interface offers a number of options.
+
+1. The box on the left is where we would paste or type text to be encoded or decoded. As with most other modules of Burp Suite, we can also send data here from other sections of the framework by right-clicking and choosing Send to Decoder. 
+2. We have the option to select between treating the input as text or hexadecimal byte values at the top of the list on the right 
+3. Further down the list, we have dropdown menus to Encode, Decode or Hash the input
+4. Finally, we have the "Smart Decode" feature, which attempts to decode the input automatically. 
+
+![image](https://user-images.githubusercontent.com/79100627/170845029-433a4fc9-69e2-4765-b8ce-c9e2b0f2b2f5.png)
+
+As we add data into the input field, the interface will duplicate itself to contain the output of our transformation. We acn then choose to operate on this using the same options:
+
+![image](https://user-images.githubusercontent.com/79100627/170845095-2cc8ad0f-1d28-4d8a-982c-d566d6097827.png)
+
+## Burp Suite Encoding/Decoding Methods:
+
+Let's take a closer look at manual encoding and decoding options. These are the same whether we choose the decoding or encoding menu: 
+
+![image](https://user-images.githubusercontent.com/79100627/170845121-84f79dcb-9725-4bf7-842b-5bf30d09b0b1.png)
+
+- Plain: Plaintext is what we have before performing any transformations.
+- URL: URL encoding is used to make data safe to transfer in the URL of a web request. It involves exchanging characters for their ASCII character code in hexadecimal format, preceded by a percentage symbol (```%```). URL encoding is an extremely useful method to know for any kind of web application testing. For example, let's encode the forward-slash character(```/```). The ASCII character code for a forward slash is 47. This is "2F" in hexadecimal, making the URL encoded forward-slash ```%2F```. We can confirm this with Decoder by typing a forward slash in the input box, then selecting ```Encode as``` -> ```URL```:
+
+![image](https://user-images.githubusercontent.com/79100627/170845201-ba489fa1-366a-44c9-9b1c-7d4ab1551190.png)
+
+- HTML: Encoding text as HTML Entities involves replacing special characters with an ampersand (```&```) followed by either a hexadecimal number or a reference to the character being escaped, then a semicolon(```;```). For example, a quotation mark has its own reference: ```&quot;```. When this is inserted into a webpage, it will be replaced by a double quotation mark (```"```). This encoding method allows special characters in the HTML language to be rendered safely in HTML pages and has added bonus of being used to prevent attacks such as XSS (Cross-Site Scripting). When we use the HTML option in Decoder, we can encode any character as its HTML escaped format or decode capture HMTL entities. For example decdoe the quotation mark we looked at before, we type in the encoded variant then choose Decode as -> HTML 
+- Base 64: Another widely used encoding method, base 64 is used to encode any data in an ASCII-compatible format. It was designed to take binary data (Images,, media, programs) and encode it in a format that would be suitable to transfer over virtually any medium. 
+- ASCII HEX: This option converts data between ASCII represenation and hexadecimal representation. For example, the word "ASCII" can be converted into the hexadecimal number "4153434949". Each letter in the original data is taken individually and converted from numeric ASCII representation into hexadecimal. For example, the letter "A" in ASCII has decimal character code of 65. In hexadecimal, this is 41. Similarly, the letter "S" can be converted to hexadecimal 53, and so on. 
+- HEX, OCTAL, and Binary: These encoding methods all apply only to numeric inputs. They convert between decimal, hexadecimal, Octal (base eight) and binary. 
+- Gzip: Gzip provides a way to compress data. It is widely used to reduce the size of files and pages before they are sent to your browser. Smaller pages mean faster loading times, which is highly desireable for developers looking to increase their SEO score and avoid annoying their customers. Decoder allows us to manually encode and decode gzip data, although this can be hard to process as it is often not valid ASCII/UNIcode
+
+![image](https://user-images.githubusercontent.com/79100627/170845459-bb93dbb2-9429-46af-bc32-e4b4527b675b.png)
+
+Smart Decode option attempts to automatically decode encoded text 
+
+## Burp Suite Hashing 
+
+### Theory
+
+hashing is a one-way process that is used to transform data into a unique signature. To be a hashing algoritm, the resulting output must be impossible to reverse. A good hashing algorithm will ensure that every piece of data entered will have a completely unique hash. For example, using the MD5 algorithm to generate a hashsum for the text "MD5" returns some hash value. using the same algorithm to generate hashsum for "MD5SUM" gives compeletely different hash, despite the similarities of the input. For this reasons, hashes are frequently used to verify the integrity of files and documents, as even a very small change to file will result in the hashsum changing significantly. 
+
+Equally, hashes are also used securely store passwords as (due-to the one-way ahshing process meaning that the hashes can never be reversed) the passwords will (relatively) secure even if the database is leaked. When a user creates a password, it is hashed and stored by the application. When the user tries to log in, the applciation will then hash the password they submit and check it against the stored hashes match, then the password was correct. When using this methodology, an application never has to store the original password. 
+
+### Hashing in Decoder:
+
+Decoder allows us to generate hash sums for data directly with Burp Suite; this works in much the same way as the encoding/decoding options we saw in the previous task. Specifically, we click on the "Hash" dropdown menu and select algorithm from the list: 
+
+![image](https://user-images.githubusercontent.com/79100627/170845657-23254b6e-4262-41f9-a23c-c884b35c9328.png)
+
+This is because the output of a hashing algorithm does not return pure ASCII/Unicode text. As such, it is common to take the resultant output of the algorithm and turn it into a hexadecimal string; this is the form of "hash" that you may be familiar with.
+
+Let's finish this by applying an "ASCII Hex" encoding to the hashsum to create the neat hex string from our initial example.
+
+![image](https://user-images.githubusercontent.com/79100627/170845921-5cefee36-a398-4395-926d-d9b6d0f09837.png)
+
+## Burp Suite Comparer 
+
+As the name suggests, Comparer allows us to compare two pieces of data, either by ASCII words or by bytes.
+
+![image](https://user-images.githubusercontent.com/79100627/170846813-cd294bdc-c3c2-44ce-bc63-681fc42887a4.png)
+
+This interface can be split into three main parts:
+
+1. On the left, we have the items being compared. When we load data into Comparer, it will appear as rows in these tables -- we would then select two datasets to compare. 
+2. On the upper right, we have options for pasting data in from the clipboard (Paste), loading data from a file (Load), removing the current row (Remove) and clearing all datasets (Clear). 
+3. Finally, on the bottom right, we have the option to compare our datasets by either words or bytes. Don't worry about which of these buttons you select as this can be changed later on. These are the buttons we click when we are ready to compare the data we have selected.
+
+As with most Burp Suite modules, we can also load data into Comparer from other modules by right-clicking and choosing "Send to Comparer".
+
+![image](https://user-images.githubusercontent.com/79100627/170847035-576c83c5-b90b-4f64-a23c-e97cb2ee9f26.png)
+
+## Burp Suite Sequencer 
+
+Sequencer is one of those tools that rarely used in CTFs and other lab environments but is an essential part of a real-world web app penetration test. 
+
+In short, Sequencer allows us to measure the entropy (or randomness, in other words) of "tokens" --strings that are used to identify something and should, in theory, be generated in a cryptographically secure manner. For example, we may wish to analyse the randomness of a session cookie or a Cross-Site Request Forgery (CSRF) token protecting a form submission. If it turns out that these tokens are not generated securely, then we can (in theory) predict the values of upcoming tokens. 
+
+![image](https://user-images.githubusercontent.com/79100627/170847205-873f64d5-9f35-4584-ae40-206633739c4e.png)
+
+There are two main methods we can use to perfrom token analysis with Sequencer: 
+- Live capture is the more common of the two methods -- this is the default sub-tab for Sequencer. Live capture allows us to pass a request to Sequencer, which we know will create a token for us to analyse. For example, we may wish to pass a POST request to login endpoint into Sequencer, as we know that the server will respond by giving us a cookie. With the request passed in, we can tell Sequencer to start a live capture: it will then make the same request thousands of times automatically, storing the generated token samples for anlaysis. Once we have accumulated enough samples, we stop Sequencer and allow it to analyse the captured tokens. 
+- Manual Load allows us to load a list of pre-generated token samples straight into Sequencer for anlaysis. Using Manual Load means we don't have to make thousands of requests to our target (which is both loud and resource intensive), but it does mean that we need to obtain a large list of pre-generated tokens 
+
+Notice in the "Token Location Within Response" section we have the option to select between Cookie, Form field, and Custom location. In this instance, we are testing ```Login Token``` so select the radio button for "Form Field":
+
+![image](https://user-images.githubusercontent.com/79100627/170847681-f580494b-7ec2-4d1d-9d23-19f3e4fc4f09.png)
+
+We can safely leave all other options at default in this instance, so let's go ahead and click the "Start live capture" button! 
+
+A new window will now pop up telling us that we are performing a live capture showing us how many tokens we have so far captured. We need to wait until we have a reasonable number of tokens captured (around 10,000 should do); the more tokens we have, the more accurate our analysis. 
+
+Once you have around 10,000 tokens captured, click "Pause", then select "Analyze now" button: 
 
 
+Note: We could also have chosen to "Stop" the capture; however, by choosing to pause it instead, we leave the option resume the capture open, should the report not have enough samples to calculate the netropy of the token accurately.
 
+If we wanted to receive periodic updates on the analysis, we could also have checked the "Auto analyze" checkbox. Doing this would tell Burp to perform the entropy analysis every 2000 requests or so, giving us frequent updates that will get progressively more accurate as more samples are loaded into Sequencer. 
 
+It is worth nothing that at this point, we could also choose to copy or save the captured tokens for further analysis later on.
+
+Having clicked "Analyze now" button, Burp will proceed to analyse the entropy of our token and generate a report. We will look through this in the next task. 
+
+## Analysis 
+Now that we have a report for the entropy analysis of our token, it's time to analyse it!
+
+Burp performs dozens of tests on the token samples that it captured. We won't be looking at all of these as it would take far more than a single task to do so (and it would get very maths-intensive to break each tenchique apart). Instead, we will focus on the generated summary; however, you are encouraged to look through all of the test results for yourself. 
+
+![image](https://user-images.githubusercontent.com/79100627/170847942-2beae03c-6469-4873-a06c-0e1c188ec913.png)
+
+The summary gives us an overall result; the effective entropy; an analysis of the reliability of the results; and a summary of the sample taken. Collectively, these will often be enough to determine whether the towkn is generated safely or not; however, in some instances, we may need to have a look at test results directly, this can be done in the "Character-level" analysis and "Bit level analysis" tabs. In short, with an estimated 1% chance of being incorrect based on the data provided (significance level: 1%) Burp has calculated that the effective entropy of our token should be around 117 bits. This is an excellent level of entropy to have in a secure token, although it should be noted that it is impossible to say with absolute assurance that this calculation is entirely accurate, simply due to the nature of the topic. 
 
 
 
