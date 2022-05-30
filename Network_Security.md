@@ -115,3 +115,54 @@ You may also try searching for the IP addresses you have obtained from DNS looku
 
 ![image](https://user-images.githubusercontent.com/79100627/170887472-45688313-849a-4a5d-b511-c81b2da5efe1.png)
 
+## Active Reconnaissance 
+
+We learn to use a web browser to collect more information about our target. Moreover, we discuss using simple tools such as ```ping```, ```traceroute```, ```telnet```, and ```nc``` to gather information about the network, system, and services. 
+
+Active reconnaissance requires you to make some kind of contact with your target. This contact can be a phone call or a visit to the target company under some pretence to gather more information, usually as part of social engineering. Alternatively, it can be direct connection to the target system, whether visiting their website or checking if their firewall has SSH port open. Think of it like you are closely inspecting windows and door locks. Hence, it is essential to remember not to engage in active reconnaissance work before getting signed legal authorization from the client. 
+
+We focus on active reconnaissance. Active reconnaissance begins with direct connections made to the target machine. Any such connection might leave information in the logs showing the client IP address, time of the connection, and duration of the connection among other things. However, not all connections are suspicious. It is possible to let your active reconnaissance appear as regular client activity. Consider web browsing; no one would suspect a browser connected to a target web server among hundreds of other legitimate users. You can use such techniques to your advantage when working as part of the red team (attacker) and don't want to alarm the blue team (defenders).
+
+## Web Browser 
+
+The web browser can be a convenient tool, especially that it is readily available on all systems. There are several ways where you can use a web browser to gather information about a target. 
+
+On the transport level, the browser connects to:
+- TCP port 80 by default when website is accessed over HTTP
+- TCP port 443 by default when the website is accessed over HTTPS
+
+Since 80 and 443 are default ports for HTTP and HTTPS, the web browser does not show them in the address bar. However, it is possible to use custom ports to access a service. For instance, http://127.0.0.1:8834/ will connect to 127.0.0.1 (localhost) at port 8834 via HTTPS protocol. If there is an HTTPS server listening on that port, we will receive a web page.
+
+While browsing a web page, you can press ```CTRL+SHIFT+I``` on a PC or ```Option + Command + I``` to open Developer Tools on Firefox. Similar shortcuts will also get you started with Google Chrome or Chromium. Developer Tools lets you inspect many things that your browser has received and exchanged with the remote server. For instance, you can view and even modify the JavaScript (JS) files, inspect the cookies set on your system and discover the folder structure of the site content. 
+
+There are also plenty of add-ons for Firefox and Chrome that can help in penetration testing. Here are few examples:
+- FoxyProxy: lets you quickly change the proxy server you are using to access the target website. This browser extension is convenient when you are using a tool such as Burp Suite or if you need to switch proxy servers regularly. 
+- User-Agent Switcher and Manager: gives you the ability to pretend to be accessing the webpage from a different operating system or different web browser. In other words, you can pretend to be browsing a site using an iPhone when in fact, you are accessing it from Mozila Firefox. You can download User-Agent Switcher and Manager for Firefox here. 
+- Wappalyzer: provides insights about the technologies used on the visited websites. Such extension is handy, primarily when you collect all this information while browsing the website like any other user. A screenshot of Wappalyzer is shown below
+
+![image](https://user-images.githubusercontent.com/79100627/170897573-ef20fa39-79ff-465f-bd29-5aac07d73ef6.png)
+
+## Ping 
+
+In simple terms, the ping command sends a packet to a remote system, and the remote system replies. This way, you can conclude that the remote system is online and that the network is working between the two systems. If you prefer a pickier definition, the ping is a command that sends an ICMP Echo packet to a remote system. If the remote system is online, and the ping packet was correctly routed and not blocked by any firewall, the remote system should send back an ICMP Echo Reply. Similarly, the ping reply should reach the first system if appropriately routed and not blocked by any firewall. 
+
+The objective of such a command is to ensure that the target system is online before we spend time carrying out more detailed scans to discover the running operating system and services. 
+
+![image](https://user-images.githubusercontent.com/79100627/170897801-3d2560a8-8039-4031-84b0-621903145a3a.png)
+
+In the example above, we saw clearly that the target system is responding. The ping output is an indicator that it is online and reachable. We have transmitted five packets, and we received five replies. We notice that, on average, it took 0.475 ms (millisecond) for the reply to reach our system, with the maximum being 0.636 ms. 
+
+From a penetration testing point of view, we will try to discover more about this target. We will try to learn as much as possible, for example, which ports are open and which services are running.
+
+Let's consider the following case: we shut down the target virtual machine and then tried to ping . As you would expect in the following example, we don;t recieve any reply.
+
+![image](https://user-images.githubusercontent.com/79100627/170897948-1e968066-a515-4350-9f78-8d2e351bc47e.png)
+
+In this case, we already know that we have shut down the target computer. For each ping, the system we are using, is responding with "Destination Host Unreachable". We can see that we have transmitted five packets, but none was received, resulting in a %100 packet loss. 
+
+Generally speaking, when we don't get a ping reply back, there are a few explanations that would explain why we didn't get a ping reply, for example:
+
+- The destination computer is not responsibe; possibly still booting up or turned off, or the OS has crahsed
+- It is unplugged from the network, or there is a faulty network device accross the path.
+- A firewall is configuredto block such packets. The firewall might be a piece of software running on the system itself or a separate network appliance. MS Windows firewall blocks ping by default.
+- Your system is unplugged from the network. 
