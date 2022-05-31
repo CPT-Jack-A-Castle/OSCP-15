@@ -166,3 +166,89 @@ Generally speaking, when we don't get a ping reply back, there are a few explana
 - It is unplugged from the network, or there is a faulty network device accross the path.
 - A firewall is configuredto block such packets. The firewall might be a piece of software running on the system itself or a separate network appliance. MS Windows firewall blocks ping by default.
 - Your system is unplugged from the network. 
+
+## Traceroute 
+
+As the name suggests, the traceroute command traces the route taken packets from your system to another host. The purpose of a traceroute is to find the IP addresses of the routers or hops that a packet traverses as it goes from your system to a target host. This command also reveals the number of routers between the two systems. It is helpful as it indicates the number of hops (routers) between your system and the target host. However, note that the route taken by the packets might change as many routers use dynamic routing protocol that adapt to network changes. 
+
+On Linux and macOS, the command to use is ```traceroute MACHINE_IP```, and MS Windows, it is tracert MACHINE_IP```. ```traceroute``` tries to discover router across the path from your system to the target system.
+
+There is no direct way to discover the path from your system to a target system. We rely on ICMP to "trick" the routers into revealing their IP addresses. We can accomplish this by using a small Time To Live (TTL) in the IP header field. Although the T in TTL stands for time, TTL indicates the maximum number of routers/hops that packet can pass through before being dropped; TTL is not a maximum number of time units. When a router receives a packet, it decrements the TTL by one before passing it to the next router. The following figure shows that each time the IP packet passes through a router, its TTL value is decremented by 1. Initially, it leaves the system with a TTL value of 64; it reaches the target system with a TTL value of 60 after passing through 4 routers.
+
+![image](https://user-images.githubusercontent.com/79100627/171254308-1a757212-04bd-40b3-ae52-488891134b16.png)
+
+![image](https://user-images.githubusercontent.com/79100627/171254356-7c592c46-49f5-4a02-95a6-d3a6652c8b6f.png)
+
+However, if the TTL reaches 0, it will droppped, and an ICMP Time-To-Live exceeded would be sent to the original sender. In the following figure, the system set TTL to 1 before sending it to the router. The first router on the path decrements the TTL by 1, resulting in a TTL of 0. consequently, this router will discard the packet and send an ICMP time exceeded in-transit error message. Note that some routers are configured not to send such ICMP messages when discarding a packet. 
+
+![image](https://user-images.githubusercontent.com/79100627/171254967-e2e6182b-f1d3-4c2d-a8bb-7c232a08bca6.png)
+![image](https://user-images.githubusercontent.com/79100627/171255008-16ceb2d9-d873-4217-a3e1-ecc88bc41546.png)
+
+On Linux, ```traceroute``` will start by sending UDP datagrams within IP packets of TTL being 1. Thus, it causes the first router to you. Then it will send another packet with TTL=2; this packet will be dropped at the second router. And so on. Let's try this on live systems
+
+In the following examples, we run the same command, ```traceroute tryhackme.com``` from TryHackMe's AttackBox. We notice that different runs might lead to different routes taken by the packets. 
+
+Traceroute A
+
+![image](https://user-images.githubusercontent.com/79100627/171255486-62c6cc5d-ee7e-4733-a114-d1c6c6864e8b.png)
+
+In the traceroute output above, we have 14 numbered lines; each line represents one router/hop. Our system sends three packets with TTL set to 1, then three packets with TTL set to 2, and so forth. Depending on the network topology, we might get replies from up to 3 different routers, depending on the route taken by the packet. Consider line number 12, the twelfth router with the listed IP address has dropped the packet three times and sent an ICMP time exceeded in transit message. The line ```12, 99.83.69.207 (99.83.69.207) 17.603ms 15.827 ms 17.351 ms``` shows the time in millieseconds for each reply to reach our system. 
+
+On the other hand, we can see that we recieved only a single reply on the third line. The two starts in the output ```3 * 100.66.16.176 (100.66.16.176) 8.006 ms * ``` indicate that our system didn't receive two expected ICMP time exceeded in transit messages.
+
+Finally, in the first line of the output, we can see that the packets leaving the AttackBox take different rotues. We can see two routers that responded to TTL 
+
+TraceRoute B
+
+![image](https://user-images.githubusercontent.com/79100627/171257112-bbc15825-8047-4062-a8eb-3e6e64f2fac8.png)
+
+In the second run of the traceroute program, we noticed that the packets took a longer route this time, passing through 26 routers. If you are running a traceroute to a system within your network, the route will be unlikely to chagne. However, we can not expect the route to remain fixed when the packets need to go via other routers outside our network.
+
+To Summarize, we can notice the following:
+- THe number of hops/routers between your system and the target system depends on the time you are running tracerroute. There is no guarantee that your packets will always follow the same route, even if you are on the same network or you repeat the traceroute command within a short time.
+- Some routers return a public ip address. You might examine a few of these routers based on the scope of the intended penetration testing.
+- Some routers don't return a reply.
+
+## Telnet 
+
+The TELNET (Teletype Network) protocol was developed in 1969 to communicate with a remote system via a command-line interface (CLI). Hence, the command ```telnet``` uses the TELNET protocol for remote administration. The default port used by telnet is 23. From a security perspective, ```telnet``` sends all the data, including usernames and passwords, in cleartext. Sending in cleartext makes it easy for anyone, who has access to the communication channel, to steal the login credentials. The secure alternative SSH (Secure SHell) protocol.
+
+However, the telnet client, with its simplicity, can be used for other purposes. Knowing that telnet client relies on the TCP protocol, you can use Telnet to connect to any service and grab its banner. Using ```telnet MACHINE_IP Port```, you can connect to any service running on TCP and even exchange a few messages unless it uses encryption.
+
+Let's say we want to discover more information about a web server, listening on port 80. We connect to the server at port 80, and then we communicate using the HTTP protocol. You don't need to dive into the HTTP protocol; you just need to issue ```GET/HTTP/1.1```. To specify something other that we want to use HTTP version 1.1 for communication. To get a valid response, insted of an error, you need to input some value for the host ```host: example``` and hit enter twice. Executing these steps will provide the requested index page. 
+
+![image](https://user-images.githubusercontent.com/79100627/171259330-fbfa2d6b-5670-41fe-939d-e33120142699.png)
+
+Of particular intrest for us is discovering the type and version of the installed web server, ```Server: nginx/1.6.2```. In this example, we communicated with a web server, so we used basic HTTP commands. If we connect to a mail server, we need to use proper commands based on the protocol, such as SMTP and POP3.
+
+## Netcat 
+
+Netcat or simply nc has different applications that can be great value to a pentester. Netcat supports both TCP and UDP protocols. It can function as client that connects to a listening port; alternatively, it can act as a server that listens on a port of your choice. Hence, it is a convenient tool that you can use as a simple client or server over TCP or UDP.
+
+First, you can connect to a server,as you did with Telnet, to collect its banner using ```nc 10.10.154.156 PORT```, which is quite similar to our previous ```telnet 10.10.154.156 PORT```
+
+![image](https://user-images.githubusercontent.com/79100627/171264014-474e8c97-00cd-45ca-b70b-9a4e28080750.png)
+
+In the terminal shown above, we used netcat to connect to 10.10.154.156 port 80 using ```nc 10.10.154.156 80```. Next, we issued a get for the default page using ```GET / HTTP/1.1```; we are specifying to the target server that our client supports HTTP version 1.1. Finally, we need to give a name to our host, so we added on a new line, ```host: netcat```; you can name your host anything as this has no impact on this exercise.
+
+Based on the output ```Server: nginx/1.6.2``` we received, we can tell that on port 80, we have Nginx version 1.6.2 listening for incoming connections. 
+
+You can use netcat to listen on a TCP port and connect to a listening port on another system. 
+
+On the server system, where you want to open a port and listen on it, you can issue ```nc -lp 1234``` or better yet, ```nc -vnlp 1234```, which is equivalent to ```nc -v -l -n -p 1234```, as you would remember from the Linux room, The exact order of the letters does not matter as long as the port number is preceded directly by ```-p```.
+
+![image](https://user-images.githubusercontent.com/79100627/171265381-fb8db003-a442-4dfb-8e69-fa5a3fbae950.png)
+
+Notes: 
+- The option ```-p``` should appear just before the port number you want to listen on.
+- The option ```-n``` will avoid DNS lookups and warnings. 
+- port numbers less 1024 require root privileges to listen on. 
+
+On the client-side, you would issue ```nc 10.10.154.156 PORT```. Here is an example of using ```nc``` to echo. After you successfully establish a connection to the server, whatever you type on the client-side will be echoed on the server-side and vice versa.
+
+Consider the following example. On the server side, we will listen on port 1234. We can achieve this with the command ```nc -vnlp 1234``` (same as ```nc -lvnp 1234```). In our case, the listening server has the IP address ```10.10.154.156```, so we can connect to it from the client-side by executing ```nc 10.10.154.156 1234```. This setup would echo whatever you type on the other side of the TCP tunnel. You can find a recording of the process below.
+
+## Putting All together 
+
+![image](https://user-images.githubusercontent.com/79100627/171268464-cee3d800-d91a-470d-8dce-92c9cd285417.png)
+
