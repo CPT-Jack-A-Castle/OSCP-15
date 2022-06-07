@@ -674,3 +674,111 @@ If you want to experiment with a new TCP flag combination beyond the built in TC
 
 Finally, it is essential to note that the ACK scan and window scan were very efficient at helping us map out the firewall rules. However, it is vital to remember that just because a firewall is not blocking a specific port, it does not necessarily mean that a service is listening on that port. For example, there is a possibility that the firewall rules need to be updated to reflect recent service cahanges, hence ACK and window scans are exporsing the firewall rules, not the service. 
 
+## Spoofing and Decoys 
+
+In some network setups, you will be able to scan a target system using a spoofed IP address and even a spoofed MAC address. Such a scan is only beneficial in a situation where you can guarantee to capture the response. If you try to scan a target from some random network using a spoffed IP address, chaces are you won't have any response routed to you, and the scan results could be reliable.
+
+The following figure shows the attacker launching the command ```nmap -S SPOOFED_IP MACHINE_IP```. Consequently, Nmap will craft all the packets using the provided source IP address ```SPOOFED_IP```. The target machine will respond to the incoming packets sending the replies to the destination IP address ```SPOOFED_IP```. For this scan to work and give accurate results, the attacker needs to monitor the network traffic to analyze the replies. 
+
+![image](https://user-images.githubusercontent.com/79100627/172279233-75b934ac-1245-4b4d-8b55-ac0eccb1809d.png)
+
+In brief, scanning with a spoofed IP address is three steps:
+1. Attacker sends a packet with a spoofed IP address to the target machine 
+2. Target machine replies to the spoofed IP address as the destination.
+3. Attacker captures the replies to figure out open ports.
+
+In general, you expect to specify the network interface using ```-e``` and to explicitly disable ping scan ```-Pn```. Therefore, instead of ```nmap -S SPOOFED_IP MACHINE_IP```, you will need to issue ```nmap -e NET_INTERFACE -Pn -S SPOOFED_IP MACHINE_IP``` to tell Nmap explicitly which network interface to use and not to expect to recieve a ping reply. It is worth repeating that this scan will be useless if the attacker system cannot monitor the network for responses. 
+
+When you are on the same subnet as the target machine, you would be able to spoof your MAC address as well. You can specify the source MAC addressing using ```--spoof-mac SPOOFED_MAC```. This address spoofing is only possible if the attacker and the target machine are on the same Ethernet (802.3) network or same WiFi (802.11). 
+
+Spoofing only works in a minimal number of cases where certain conditions are met. Therefore, the attacker might resort to using ```--spoof-mac SPOOFED_MAC```. This address spoofing is only possible if the attacker and the target machine are on the same Ethernet (802.3) network or same WiFi (802.11).
+
+Spoofing only works in a minimal number of cases where certain conditions are met. Therefore, the attacker might resort to using decoys to make it more challenging to be pinpointed. The concept is simple, make the scan appears to be coming from many IP addresses so that the attacker's IP address would be lost among them. As we see in the figure below, the scan of the target machine will appear to be coming from 3 different sources, and consequently, the replies will go the decoys as well. 
+
+![image](https://user-images.githubusercontent.com/79100627/172281351-e7bdd60d-d3c1-4ca7-be77-3d4f1afbdca2.png)
+
+You can launch a decoy scan by specifying a specific or random IP address after ```-D```. For example, ```nmap -D 10.10.0.1,10.10.0.2,ME MACHINE_IP``` will make the scan. For example, ```nmap -D 10.10.0.1, 10.10.0.2, ME MACHINE_IP will make the sacn of MACHINE_IP appear as comming from the IP address 10.10.0.1, 10.10.0.2, and then ```ME``` to indicate that your IP address should appear in the thrid order. Another example command would be ```nmap -D 10.10.0.1, 10.0.0.2, RND, RND, ME MACHINE_IP, where the thrid and fourth source IP addresses are assigned randomly, while the fifth source is going to be attacker's IP address. In other words, each time you execute the latter command, you would expect two new random IP address to be the thrid and fourth decoy sources. 
+
+## Fragmented Packets 
+
+### Firewall
+
+A firewall is a piece of software or hardware that permits packets to pass through or blocks them. It functions based on firewall rules, summarized as blocking all traffic with exceptions or allowing all traffic with exceptions. For instance, you might block all traffic to your server except those coming to your web server. A traditional firewall inspects, at least IP Header and the transport layer header. A more sophisticated firewall would also try to examine the data carried by the transport layer. 
+
+### IDS
+
+An intrusion detection system (IDS) inspects network packets for select behavioural patterns or specific content signatures. It raises an alert whenever a malicious rule is met. In addition to the IP header and transport layer header, an IDS would inspect the data contents in the transport layer and check if it matches any malicious patterns. How can you make it less likely for a traditional firewall/IDS to detect your Nmap activity? It is not easy to answer this; however, depending on the type of firewall/IDS, you might benefit from dividing the packet into smaller packets
+
+### Fragmented Packets
+
+Nmap provides the option ```-f``` to fragment packets. Once chosen, the IP data will be divdided into 8 bytes or less. Adding another ```-f```(```-f -f``` or ```-ff```) will split the data into 16 byte-fragments instead of 8. You can change the default value using the --mtu; however, you should always choose a multiple of 8.
+
+To properly understand fragmentation, we need to look at the IP header in the figure below.Notice the source address taking 32 bits (4 bytes) on the fourth row, while the destination address is taking another 4 bytes on the fifth row. The data that we will fragment across multiple packets is highlighted in red. To aid in the reassembly n recipient side, IP uses the identification (ID) and fragment offset, shown on the second row of the figure below.
+
+![image](https://user-images.githubusercontent.com/79100627/172438678-41ae5f19-b6cb-46be-a71f-d81171c5a924.png)
+
+Let's compare running ```sudo nmap -sS -p80 10.20.30.144``` and ```sudo nmap -sS -p80 -f 10.20.30.144```. As you know by now, this will use stealth TCP SYN scan on port 80; however, in the second command, we are requesting Nmap to fragment the IP packets.
+
+In the first two lines, we can see an ARP query and response. Nmap issued an ARP query because the target is on the same Ethernet. The second two lines show a TCP SYN ping and a reply. The fifth line is the beginning of the port scan; Nmap sends a TCP SYN packet to port 80. In this case, the IP header is 20 bytes, and the TCP header is 24 bytes. Note that the minimum size of the TCP header is 20 bytes.
+
+![image](https://user-images.githubusercontent.com/79100627/172439830-aff8133e-7773-4646-a778-d15a659773e1.png)
+
+With fragmentation requested via ```-f```, the 24 bytes of the TCP header will be divided into multiple of 8 bytes, with the last fragment containing 8 bytes or less of the TCP header. Since 24 is divisible by 8, we got 3 IP fragments; each has 20 bytes of IP header and 8 bytes of TCP header. We can see the three fragments 
+
+![image](https://user-images.githubusercontent.com/79100627/172440168-8d49cd37-acca-4477-8dc9-b18ac7531acc.png)
+
+Note that if added ```-ff``` (or ```-f -f```), the fragmentation of the data will be multiples of 16. In other words, the 24 bytes of the TCP header, in this case, would be  divided over two IP fragments, the first containing 16 bytes and the second containing 8 bytes of the TCP header. 
+
+On the other hand, if you prefer to increase the size of your packets to make packets to make them look innocuous, you can the option ```--data-length NUM```, where num specifies the number of bytes you want to append to your packets.
+
+## Idle / Zombie Scan 
+
+Spoofing the source IP address can be a great approach to scanning stealthily. However, spoofing will only work in specific network setups. It requires you to be in a position where you can monitor the traffic. Considering these limitations, spoofing your IP address can have little use; however, we can give it an upgrade with the with the idle scan. 
+
+The idle scan, or zombie scan, requires an idle system connected to the network that you can communicate with. Practically, Nmap will make each probe appear as if coming from the idel (zombie) host, then it will check for indicators whether the idle (zombie) host received any response to the spoofed probe. This is accomplished by checking the IP identification (IP ID) value in the IP header. You can run an idel scan using ```nmap -sI ZOMBIE_IP MACHINE_IP```, where ```ZOMBIE_IP``` is the IP address of the idle host (zombie). 
+
+The idle (zombie) scan requires the following three steps to discover whether a port is open: 
+
+1. Trigger the idle host to respond so that you can record the current IP ID on the idle host. 
+2. Send a SYN packet to a TCP port on the target. The packet should be spoofed to appear as if it was coming from the idle host (zombie) IP address. 
+3. Trigger the idle machine again to respond so that you can compare the new IP ID with the one received earlier.
+
+Let's explain with figures. In the figure below, we have the attacker system probing an idle machine, a multi-function printer. By sending a SYN/ACK, it responds with an RST packet containing its newly incremented IP ID.
+
+![image](https://user-images.githubusercontent.com/79100627/172442214-d4d79861-0a8b-4747-87d0-e964556321da.png)
+
+The attacker will send a SYN packet to the TCP port they want to check on the target machine in the next step. However, this packet will use the idel host (zombie) IP address as the source. Three scenarios would arise. In the first scenario, shown in figure below, the TCP port is closed; therefore, the target machine responds to the idle host with an RST packet. The idle host does not respond; hence its IP ID is not incremented.
+
+![image](https://user-images.githubusercontent.com/79100627/172442771-7cbf02f3-2096-4f71-a5b2-db950d77a38a.png)
+
+In the second scenario, as shown below, the TCP port is open, so the target machine responds with a SYN/ACK to the idle host (zombie). The idle host responds to this unexpected packet with an RST packet, thus incrementing its IP ID.
+
+![image](https://user-images.githubusercontent.com/79100627/172443132-09f994f8-ac57-416a-b081-dcb36e2c336c.png)
+
+In the thrid scenario, the target machine does not respond at all due to firewall rules. This lack of response will lead to the same result as with the closed port; the idle host won't increase the IP ID.
+
+For the final step, the attacker sends another SYN/ACK to the idle host. The idle host responds with an RST packet, incrementing the IP ID by one again. The attacker needs to compare the IP ID of the RST packet received in the first step with the IP ID of the RST packet received in this thrid step. If the difference is 1, it means the port on the target machine was closed or filtered. However, if the difference is 2, it means that the port on the target was open. 
+
+It is worth repeating that this scan is called an idle scan because choosing an idle hosting is indispensable for the accuracy of the scan. If the "idle host" is busy, all the returned IP IDs would be useless. 
+
+You might consider adding ```--reason``` if you want Nmap to provide more details regarding its reasoning and conclusions. Consider the two scan below to the system; however, the latter adds ```--reason```
+
+## Getting more details 
+
+![image](https://user-images.githubusercontent.com/79100627/172444595-14bfa0ae-92a0-432b-91c2-7b0c4097ee32.png)
+
+![image](https://user-images.githubusercontent.com/79100627/172444715-8b9b484b-f488-49f9-b1ee-eeb6834ea799.png)
+
+Providing the ```--reason``` flag gives us the explicit reason why Nmap concluded that the system is up or a particular port is open. In this console output above, we can see that this system is considered online because Nmap "recieved arp-response." On the other hand, we know that the SSH port is deemed to be open because Nmap received a "SYN-ACK" packet back. 
+
+For more detail output, you can consider using ```-v``` for verbose output or ```-vv``` for even more verbosity 
+
+![image](https://user-images.githubusercontent.com/79100627/172445422-a7293b2f-993f-466c-b27d-7100da6ee022.png)
+
+if ```-vv``` does not satisfy your curiousity, you can use ```-d``` for debugging details or ```-dd``` for more details.
+
+## Summary
+
+![image](https://user-images.githubusercontent.com/79100627/172445751-3bfe529d-a21a-468f-9cb5-fd5cfefb0ba2.png)
+
+![image](https://user-images.githubusercontent.com/79100627/172445818-181c1d40-869d-42f2-9956-171210bb8712.png)
