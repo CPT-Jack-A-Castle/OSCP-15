@@ -782,3 +782,61 @@ if ```-vv``` does not satisfy your curiousity, you can use ```-d``` for debuggin
 ![image](https://user-images.githubusercontent.com/79100627/172445751-3bfe529d-a21a-468f-9cb5-fd5cfefb0ba2.png)
 
 ![image](https://user-images.githubusercontent.com/79100627/172445818-181c1d40-869d-42f2-9956-171210bb8712.png)
+
+## Service Detection 
+
+Once Nmap discovers open ports, you can probe the available port to detect the running service. Further investigation of open ports is an essential piece of information as the pentester can use it to learn if there are any known vulnerabilities of the service. 
+
+Adding ```-sV``` to your Nmap command will collect and determine service and version information for the open ports. You can control the intensity with ```--version-intensity LEVEL``` where the level ranges between 0, the lightest, and 9, the most complete. ```-sV --version-light``` has an intensity of 2, while ```-sV --version-all``` has an intensity of 9. 
+
+It is important to note that using ```-sV``` will force Nmap to proceed with the TCP 3-way handshake and establish the connection. The connection establishment is necessary because Nmap cannot discover the version without establishing a connection fully and communicating with the listening service. In other words, stealth SYN scan ```-sS``` is not possible when ```-sV``` option is chosen 
+
+The console output below shows a simple Nmap stealth SYN scan with the ```-sV``` option. Adding the ```-sV``` option leads to a new column in the output showing the version is for each detected service. For instance, in the case of TCP port 22 being open, instead of ```22/tcp open ssh```, we obtain ```22/tcp open ssh OpenSSH 6.7p1 Debian 5+deb8u8 (protocol 2.0)```. Notice that the SSH protocol is guessed as the service because TCP port 22 is open; Nmap didn't need to connect to port 22 to confirm. However, ```-sV``` required connecting to this open port to grab the service banner and any version information it can get, such as ```nginx 1.6.2```. Hence, unlike the service column, the version column is not a guess. 
+
+![image](https://user-images.githubusercontent.com/79100627/172459554-2f09f120-0c66-4a4d-a8e3-53c5ed84ca9e.png)
+
+Note that many Nmap options require root privileges. Unless you are running Nmap as root, you need use ```sudo``` as in the example above.
+
+## OS Detection 
+
+Nmap can detect the Operating System (OS) based on its behaviour and any telltale signs in its responses. OS detection can be enable using ```-O```; this is an uppercase O as in OS. 
+
+![image](https://user-images.githubusercontent.com/79100627/172460850-2be9ad9e-7954-43ae-b374-35d6ec5363d2.png)
+
+The system that we scanned and attempted to detect its OS version is running kernel version 3.16. Nmap was able to make a close guess in this case. In another case, we scanned a Fedora Linux system with kernel 5.13.14; however, Nmap detected it as Linux 2.6.X. The good news is that Nmap detected the OS correctly; the not-so-good news is that the kernel version was wrong. 
+
+The OS detection is very convenient, but many factors might affect its accuracy. First and foremost, Nmap needs to find at least one open and one closed port on the target to make a reliable guess. Furthermore, the guest OS fingerprints might get distorted due to the rising use of virtualization and similar technologies. Therefore, always take the OS version with a grain of salt. 
+
+## Traceroute 
+
+If you want Nmap to find the routers between you and the target, just add ```-traceroute```. In the following example, Nmap appended a traceroute to its scan results. Note that Nmap's traceroute works slightly different than the ```traceroute``` command found on Linux and macOS or ```tracert``` found on MS windows. Standard ```traceroute``` starts with a packet of low TTL (Time to Live) and keeps increasing until it reaches the target. Nmap's traceroute starts with a packet of high TTL and keeps decreasing it. 
+
+In the following example, we executed ```nmap -sS --traceroute 10.10.99.125``` on the Attackbox 
+
+![image](https://user-images.githubusercontent.com/79100627/172461872-61cd2de2-dc8f-4b24-af9e-017b45532908.png)
+
+It is worth mentioning that many routers are configured not to send ICMP Time-to-Live exceeded, which would prevent us from discovering their IP addresses. 
+
+A script is a piece of code that does not need to be complied. In other words, it remains in its original human-readable form and does not need to be converted to machine language. Many programs provide additional functionality via scripts; moreover, scripts make it possible to add custom functionality that did not exist via the built in commands. Similarly, Nmap provides support for scripts using the Lua language. A part of Nmap, Nmap Scripting Engine (NSE) is a Lua interpreter that allows Nmap to execute Nmap scripts written in Lua language. However, we don;t need to learn Lua to make use of Nmap scripts 
+
+Your Nmap default installation can easily contain close to 600 scripts. 
+
+![image](https://user-images.githubusercontent.com/79100627/172470815-f1244dde-190c-487d-bf4e-ad1af368a06b.png)
+
+You can specify to use any or a group of these installed scripts; moreover, you can install other user's scripts and use them for your scans. Let's begin with the default scripts. You can choose to run the scripts in the default category using ```--script=default``` or simply adding ```-sC```. In addition to default, categories include auth, broadcast, brute, default, discovery, dos, exploit, external, fuzzer, intrusive, malware, safe, version, and vuln. 
+
+![image](https://user-images.githubusercontent.com/79100627/172471120-b58e4078-bb80-4e8b-81ac-b928dd6c172c.png)
+
+Some scripts belong to more than one category. Moreover, some scripts launch brute-force attacks against services, while other launch DoS attack and exploit systems. Hence, it is crucial to be careful when selecting scripts to run if you don't want to crash service or exploit them.
+
+We use Nmap to run a SYN scan against ```10.10.190.98``` and execute the default scripts in the console shown below. The command is ```sudo nmap -sS -sC 10.10.190.98```, where ```-sC``` will ensure that Nmap will execute the default scripts following the SYN scan. There are new details that appear below. Take a look at the SSH service at port 22; Nmap recovered all four public keys related to the running server. Consider another example, the HTTP service at port 80; Nmap retrieved the default page title. We can see that the page has been left as default. 
+
+![image](https://user-images.githubusercontent.com/79100627/172472840-059cf5f8-d583-4d44-a812-800ee6563fbb.png)
+
+You can also specify the script by name using ```--script "SCRIPT-NAME"``` or a pattern such as ```--script "ftp*"```, which would ```ftp-brute```. If you are unsure what a script does, you can open the script file with a text reader, such as ```less```, or a text editor. In the case of ```ftp-brute```, it states: "Performs brute force password auditing against FTP servers." You have to becareful as some scripts are pretty intrusive. Moreover, some script might be for a specific server and, if chosen at random, will waste your time with no benefit. As usual, make sure that you are authorized to launch such tests on the target server. 
+
+Get the date from HTTP-likes services. Also it prints how much the date differs from loacl time 
+
+![image](https://user-images.githubusercontent.com/79100627/172474018-07f0dd22-8c68-413f-bd97-97d01888d367.png)
+
+
