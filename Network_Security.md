@@ -839,4 +839,16 @@ Get the date from HTTP-likes services. Also it prints how much the date differs 
 
 ![image](https://user-images.githubusercontent.com/79100627/172474018-07f0dd22-8c68-413f-bd97-97d01888d367.png)
 
+## Svaing the Output 
+
+Whenever you run a Nmap scan, it is only reasonable to save the results in a file. Selecting and adopting a good naming convention for your filenames is also crucial. The number of files can quickly grow and hinder your ability to find a previous scan result. The three main formats are:
+
+1. Normal 
+2. Grepable (```grep```able)
+3. XML 
+
+There is a fourth one that we cannot recommend:
+
+- Script Kiddie 
+
 
