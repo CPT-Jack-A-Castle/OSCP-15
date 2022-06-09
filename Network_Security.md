@@ -1007,3 +1007,82 @@ Let's take a look at simple IMAP commands. In the console output below, we use T
 ## Summary 
 
 ![image](https://user-images.githubusercontent.com/79100627/172912418-53236e9f-286d-4dd5-b3a5-8d75fab63a56.png)
+
+## Sniffing Attack 
+
+Sniffing attack refers to using a network packet capture tool to collect information about the target. When a protocol communicates in cleartext, the data exchanged can be captured by a third party to analyse. A simple network packet capture can reveal information, such as the content of private messages and login credentials, if the data isn't encrypted in transit.
+
+A sniffing attack can be conducted using an Ethernet (802.3) network card, provided that the user has proper permissions (root permissions on Linux and administrator privileges on MS Windows). There are many programs available to capture network packets. We consider the following:
+
+1. TCPdump is a free open source command-line interface (CLI) Program that has been ported to work on many operating systems.
+2. Wireshark is a free open source graphical user interface (GUI) program available for several  operating systems, including Linux, macOS and MS Windows. 
+3. Tshark is a CLI alternative to Wireshark 
+
+There are several specialized tools for capturing passwords and even complete messages; however, this can still be acheived by TCPdump and Wireshark with some added effort. 
+
+Consider a user checking his email messages using POP3. First, we are going to use Tcpdump to attempt to capture the username and password. In the terminal output below, we used the command ```sudo tcpdump port 110 -A```. Before explaining this command, we should mention that this attack requires access to the network traffic, for example, via a wiretap or a switch with port mirroring. Alternatively, we can access the traffic exchanged if we launch a successful Man in the Middle attack. 
+
+We need ```sudo``` as packet captures required root privileges. We wanted to limit the number of captured and displayed packets to those exchanged with the POP3 server. We know that POP3 uses port 110, so we filtered our packets using ```port 110```. Finally, we wanted to display the contents of the captured packets in ASCII format, so we added ```-A```.
+
+![image](https://user-images.githubusercontent.com/79100627/172916375-1d1ec13a-b482-4293-8842-ce844b055773.png)
+
+In the terminal output above, we have removed the unimportant packets to help you better focus on the ones that matter. In particular, the username and password were each sent int their own packet. The first packet explicitly displays "USER frank", while the last packet reveals the password "PASS D2xc9CgD"
+
+We could also use the Wireshark to achieve the same result 
+![image](https://user-images.githubusercontent.com/79100627/172916746-f6a0eaa9-2174-47f5-a5a0-49994bbeeb34.png)
+
+## Man In the Middle (MITM) Attack 
+
+A Man in The Middle (MITM) attack occurs when a victim (A) believes they are communicating with a legitimate destination (B) but is unkowingly communicating with an attacker (E). In the figure below, we have A requesting the transfer of $20 to M; however, E altered this message and replaced the original value with a new one. B received the modified messaged and acted on it. 
+
+![image](https://user-images.githubusercontent.com/79100627/172917870-19cab646-f898-451a-8004-0b6895efd15c.png)
+
+This attack is relatively simple to carry out if the two parties do not confirm the authenticity and integrity of each message. In some cases, the chosen protocol does not provide secure authentication or integirty checking; moreover some protocols have inherent insecurities that make them susceptible to this kind of attack.
+
+Any time you browse over HTTP, you are susceptible to a MITM attack, and the scary thing is that you cannot recognize it. Many tools would aid you in carrying out such an attack, such as Ettercap and Bettercap.
+
+MITM can also affect other cleartext protocols such as FTP, SMTP, and POP3. Mitigation against this attack requires the use of cryptography. The solution lies in proper authentication alogn with encryption or signing of the exchanged messages. With the help of Public Key Infrastructure (PKI) and trusted root certificates, Transport Layer Security (TLS) prototects from MITM attacks.
+
+## Transport Layer Security (TLS)
+
+SSL (Secure Socket Layer) started when the world wide web started to see new applications, such as online shopping and sending payment information. Netsacpe introduced SSL in 1994, with SSL 3.0 being released in 1996. But eventually, more security was needed, and TLS (Transport Layer Security) protocol was introduced in 1999. Before we explain what TLS and SSL provide, let's see how they fit the networking model.
+
+The common protocols we have covered so far send the data in cleartext; this makes it possible for anyone with access with access to the network to capture, save and analyze the exchanged messages. The image below shows the ISO/OSI network layers. The protocols we have covered so far in this room are on the application layer. Consider the ISO/OSI model; we can add encryption to our protocols via the presentation layer. Consequently, data will be presented in an encrypted format (ciphertext) instead of its original form. 
+
+![image](https://user-images.githubusercontent.com/79100627/172920516-46453f2e-348b-43f2-9bdd-bce16bf2b41d.png)
+
+Beacuse of the close relation between SSL and TLS, one might be used instead of other. However, TLS is more secure than SSL, and it has partically replaced SSL. We could have droped SSL and just written TLS instead of SSL/TLS, but we will continue to mention the two to avoid any ambiguity because the term SSL is still in wide use. However, we can expect all modern servers to be using TLS.
+
+An existing cleartext protocol can be updagraded to use Encryption via SSL/TLS. We can use TLS to upgrade HTTP,FTP,SMTP,POP3, and IMAP, to name a few. The following table lists the protocols we have covered and their default ports before and after the necryption upgrade via SSL/TLS. The list is not exhaustive;
+
+![image](https://user-images.githubusercontent.com/79100627/172921007-43da67ce-ae7b-4bed-83e7-e1ee6fa0eec6.png)
+
+Considering the case of HTTP. initially to retrieve a web page over HTTP, the web browser would need at least perform the following two steps:
+
+1. Establish a TCP connection with the remote webserver
+2. Send HTTP requests to the web server, such as GET and POST requests. 
+
+HTTPS reuqires an additional step to encrypt the traffic. The new step takes palce after establishing a TCP connection and before sending HTTP requests. This extra step can be inferred from the ISO/OSI model in the image presented ealier. Consequently , HTTPS requires at least the following three steps: 
+
+1. Establish a TCP connection
+2. Establish SSL/TLS connection
+3. Send HTTP requests to the webserver 
+
+To establish an SSL/TLS connection, the client needs to perform the proper handshake with the server. Based on RFC 5101, the SSL connection establishment will look like the figure below. 
+
+![image](https://user-images.githubusercontent.com/79100627/172921979-b02d8001-15b1-4ff5-bfa7-0b5985a17e0c.png)
+
+After establishing a TCP connection with the server, the client establishes an SSL/TLS connection, as shown in the figure above. The terms might look complicated depending on your knowledge of cryptography, but we can simplify the foru steps as:
+
+1. The client sends a ClientHello to the server to indicate its capabilities, such as supported algorithms.
+2. The server responds with a ServerHello, idnicating the selected connection parameters. The server provides its certificate if server authentication is required. The certificate is a digital file to identify itself; it is usually digitally signed by a thrid party. Moreover, it might send additional information necessary to generate the master key, in its ServerKeyExchange message, before sending the ServerHelloDone Message to indicate that it is done with the neogtiation.
+3. The client responds with a ClientKeyExchange, which contains additional information required to generate the master key. Furthermore, it switches to use encryption and informs the server using the ChangeCipherSpec message. 
+4. The server swithces to use encryption as well and informs the client in the ChangeCipherSpec message 
+
+If this still sounds sophisticated, dont worry; we only need the gist of it. A client was able to agree on a secret key with a swerver that has a public certificate. This secret key was securely generated so that a thrid party monitoring the channel wouldn't be able to discover it. Further communication between the client and the server will be encrypted using the generated key.
+
+Consequently, once an SSL/TLS handshake has been established, HTTP requests and exchanged data won't be accessible to anyone watching the communication channel. 
+
+As a final note, for SSL/TLS to be effective, especially when browsing the we over HTTPS, we rely on public certificates signed by certificate authorities trusted by our systems. In other words, when we browse to TryHackMe over HTTPS, our browser expect the TryHackMe web server to provide a signed certificate from a trusted certificate authroity, as per the example below. This way, our browser ensures that it is communicating with the correct server, and a MITM attack cannot occur
+
+![image](https://user-images.githubusercontent.com/79100627/172923846-bdbc0b9c-232a-4c6d-8ce3-b015f007a04e.png)
