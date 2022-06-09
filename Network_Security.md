@@ -897,4 +897,113 @@ Three popular chocies for HTTP servers are:
 - Internet Information Service 
 - nginx 
 
-Apache and Nginx are free 
+Apache and Nginx are free
+
+## File Transfer Protocol (FTP) 
+
+File Transfer Protocol (FTP) was developed to make the transfer of files between different computers with different systems efficient. 
+
+FTP  also sends and receives data as cleartext; therefore, we can use Telnet (or Netcat) to coomunicate with an FTP server and act as an FTP client. In the example below, we carried out the following steps:
+
+1. We connected to an FTP server using a Telnet client. Since FTP servers listen on port 21 by default Telnet port.
+2. We needed to provide the username with the command ```USER frank```.
+3. Then, we provide the password with the command ```PASS D2xc9CgD```.
+4. Beacuse we supplied the correct username and password, we got logged in
+
+A command like ```STAT``` can provide some added information. The ```SYST``` command shows the System Type of the target (UNIX in this case). ```PASV``` switches the mode to passive. It is worth nothing that there are two modes for FTP: 
+
+- Active: In the active mode, the data is sent over a separate channel originating from the FTP server's port 20. 
+- Passive: In the passive mode, the data is sent over a separate channel originating from an FTP client's port above port number 1023. 
+
+
+The command ```TYPE A``` switches the file transfer mode to ASCII, while ```TYPE I``` switches the file transfer mode to binary. However, we cannot transfer a file using a simple client such as Telnet because FTP creates a separate connection for file transfer. 
+
+![image](https://user-images.githubusercontent.com/79100627/172899079-73823014-b170-48f8-9f62-c9f1f6ed155a.png)
+
+The image below shows how an actual file transfer would be conducted using FTP. To keep things simple in this figure, let's only focus on the fact that the FTP client will initiate a connection to an FTP server, which listens on port 21 by default. All commands will be sent over the control channel. Once the client requests a file, another TCP connection will be established between them. (The details of establishing the data connection/channel is beyond the scope of this room).
+
+![image](https://user-images.githubusercontent.com/79100627/172900211-fdd4fbd7-d629-47cb-b2d9-32ab1ca457b8.png)
+
+Considering the sophistication of the data transfer over FTP, let's use an actual FTP client to download a text file. We only needed a small number of commands to retrieve the file. After logging in successfully, we get the FTP prompt, ```ftp>```, to execute various FTP commands. We used ```ls``` to list the files and learn the file name; then, we switched to ```ascii``` since it is a text file (not binary). Finally ```get FILENAME``` made the client and server establish another channel for file transfer. 
+
+![image](https://user-images.githubusercontent.com/79100627/172900955-80ab1b1c-5137-4faa-a3ac-56bd57a273f0.png)
+
+FTP servers and FTP clients use the FTP protocol. There are various FTP server software that you can select from if you want to host your FTP server. Example of FTP servers:
+
+- vsftpd
+- ProFTPD
+- uFTP
+
+For FTP clients, in addition to the console FTP client commonly found on Linux systems, you can use an FTP client with GUI such as FileZilla. Some web browsers also support FTP protocol.
+
+## Simple Mail Transfer Protocol (SMTP)
+
+Email is one of the most used services on the Internet. There are various configurations for email servers; for instance you may set up an email system to allow local users to exchange emails with each other with no access to the Interent. However, we will consider the more general setup where different email servers connect over the Internet.
+
+Email delivery over the Internet requires the following components:
+
+1. Mail Submission Agent (MSA) 
+2. Mail Transfer Agent (MTA)
+3. Mail Delivery Agent (MDA)
+4. Mail User Agent (MUA) 
+
+The above four terms may look cryptic, but they are more straightforward than they appear. We will explain these terms using the figure below. 
+
+![image](https://user-images.githubusercontent.com/79100627/172902404-d1f12fed-5a07-4cb6-89e2-6828041a7ac6.png)
+
+The figure shows the following five steps that an email needs to go through to reach the recipient's inbox:
+
+1. A Mail User Agent (MUA), or simply an email client, has an email message to be sent. The MUA connects to a Mail Submission Agent (MSA) to send its message.
+2. The MSA receives the message, checks for any errors before transferring it to the Mail Transfer Agent (MTA) server, commonly hosted on the same server. 
+3. The MTA will send the email message to the MTA of the recipient. The MTA can also function as a Mail SUbmission Agent (MSA).
+4. A typical setup would have the MTA server also functioning as a Mail Delivery Agent (MDA).
+5. The recipient will collect its email from the MDA using their email client. 
+
+If the above steps sound confusing, consider the following analogy:
+
+1. You (MUA) want to send postal mail.
+2. The post office employee (MSA) checks the postal mail for any issues before your local post (MTA) accepts it.
+3. The local post office checks the mail destination and ssends it to the post office (MTA) in the correct country. 
+4. The post office (MTA) delivers the mail to the recipient mailbox (MDA).
+5. The recipient (MUA) regularly checks the mailbox for new mail. They notice the new mail, and they take it. 
+
+In the same way, we need to follow a protocol to communicate with an HTTP server, and we need to rely on email protocols to talk with an MTA and an MDA. The protocols are:
+
+1. Simple Mail Transfer Protocol (SMTP)
+2. Post Office Protocol Version 3 (POP3) or Interent Message Access Protocol (IMAP) 
+
+SMTP is used to communicate with MTA server. Because SMTP uses cleartext, where all commands are sent without encryption, we can use basic Telnet client to connect to an SMTP server and act as an email client (MUA) sending a message. 
+
+SMTP server listens on port 25. To see basic communication with an SMTP server, we used Telnet to connect to it. Once connected, we issue ```helo hostname``` and then start typing our email. 
+
+![image](https://user-images.githubusercontent.com/79100627/172903969-6f60debb-e361-4aa5-9a7e-4c5ec2c4882a.png)
+
+After ```helo```, we issue ```mail from:```, ```rcpt to:``` to indicate the sender and the recipient. When we send our email message, we issue the command ```data``` and type our message. We issue ```<CR><LF>,<CR><LF>``` (or ```Enter . Enter``` to put it in simpler terms). The SMTP server now queues the message. 
+
+## POST Office Protocol Version 3
+
+Post Office Protocol Version 3 (POP3) is a protocol used to download the email messages from a Mail Delivery Agent (MDA) server, as shown in the figure below. The mail client connects to the POP3 server, authenticates, downloads the new email messages before (optionally) deleting them. 
+
+![image](https://user-images.githubusercontent.com/79100627/172905674-729910a5-a743-49c2-b626-004813e213f3.png)
+
+The example below shows what a POP3 session would like if conducted via a Telent client. First, the user connects to the POP3 server at the POP3 default port 110. Authentication is required to access the email messages; the user authenticates by providing his user name ```USER frank``` and password ```PASS D2xc9CgD```. Using the command ```STAT```, we get the reply ```+OK 1 179```; based on RFC 1939, a positive response to STAT has the format ```+OK nn mm```, when nn is the number of email messages in the inbox, and mm is the size of the inbox in octets (bytes). The command ```LIST``` provided a list of new messages on the server, and ```RETR 1``` retrieved the first message in the list. We don't need to concern ourselves with memorizing these commands; however, it is helpful to strengthen our understanding of such protocol. 
+
+![image](https://user-images.githubusercontent.com/79100627/172906532-6edaa061-36fd-4323-8742-68aa1c0383b1.png)
+
+The example above shows that the commands are sent in cleartext. Using telnet was enough to authenticate and retrieve an email message. As the username and password are sent in the cleartext, any thrid party watching the network traffic can steal the login credentials. 
+
+In general, your mail client (MUA) will connect to the POP3 server (MDA), authenticate, and download the messages, Although the communication using the POP3 protocol will be hidden behind a sleek interface, similar commands will be issued, as shown in the Telnet session above. 
+
+Based on the default settings, the mail client deletes the mail message after it downloads it. The default behaviour can be changed from the mail client settings if you wish to download the emails again from another mail client. Accessing the same mail account via multiple client's using POP3 is usually not very convenient as one would lose track of read and unread messages.
+
+## Interent Message Access Protocol (IMAP)
+
+Internet Message Access Protocol (IMAP) is more sophisticated than POP3. IMAP makes it possible to keep your email synchronized accross multiple devices (and mail clients). In other words, if you mark an email message as read when checking your email on your smartphone, the change will be saved on IMAP server (MDA) and replicated on your laptop when you synchronize your inbox. 
+
+Let's take a look at simple IMAP commands. In the console output below, we use Telnet to connect to the IMAP server's default port, and then we authenciate using ```LOGIN username password```. IMAP requires each command to be preceded by a random string to be able to track the reply. So we added ```c1```, then ```c2```, and so on. Then we listed our mail folders using ```LIST "" "*"```, before checking if we have any new messages in the inbox using ```Examine INBOX```. We don;t need to memorize these commands; however, we are simply  providing the example below to give a vivid image of what happens when the mail client communicates with an IMAP server.
+
+![image](https://user-images.githubusercontent.com/79100627/172912211-bfceaf37-13e9-48a4-9ea9-61e4aca221a0.png)
+
+## Summary 
+
+![image](https://user-images.githubusercontent.com/79100627/172912418-53236e9f-286d-4dd5-b3a5-8d75fab63a56.png)
