@@ -1086,3 +1086,85 @@ Consequently, once an SSL/TLS handshake has been established, HTTP requests and 
 As a final note, for SSL/TLS to be effective, especially when browsing the we over HTTPS, we rely on public certificates signed by certificate authorities trusted by our systems. In other words, when we browse to TryHackMe over HTTPS, our browser expect the TryHackMe web server to provide a signed certificate from a trusted certificate authroity, as per the example below. This way, our browser ensures that it is communicating with the correct server, and a MITM attack cannot occur
 
 ![image](https://user-images.githubusercontent.com/79100627/172923846-bdbc0b9c-232a-4c6d-8ce3-b015f007a04e.png)
+
+## Secure Shell (SSH)
+
+Secure Shell (SSH) was created to provide a secure way for remote system administration. In other words, it lets you securely connect to another system over the network and execute commands on the remote system. Put simply, the "S" in SSH stands for secure, which can be summarized simply as:
+
+1. You can confirm the identity of the remote server
+2. Exchanged messages are encrypted and can only be decrypted by the intended recipient 
+3. Both sides can detect any modification in the messages
+
+The above three points are ensured by cryptography. In more technical terms, they are part of confidentiality and integrity, made possible through the proper use of different encryption algorithms.
+
+To use SSH, you need an SSH server and an SSH client. The SSH server listens on port 22 by default. The SSH client can authenticate using:
+
+- A username and a password
+- A private and public key (after the SSH server is configured to recognize the corresponding public key) 
+
+On Linux, macOS, and MS Window builds after 2018, you can connect an SSH server using following command ```ssh username@macine_IP```. This command will try to connect to the server of IP address ```MACHINE_IP``` with the login name ```username```. If an SSH server is listening on the default port, it will ask you to provide the password for ```username```. Once authenticated the user will have to access the target server's terminal. The terminal output below is an example of using SSH to access a Debian Linux server. 
+
+![image](https://user-images.githubusercontent.com/79100627/173194599-7784fb21-6454-4842-8962-bc513db10a5e.png)
+
+In the example above, we issued command ```ssh mark@MachineIP```. Then once, we entered the correct password, we got access to the remote system's terminal. SSH is very reliable for remote administration because our username and password were sent encrypted; moreover, all commands we execute on the remote system will be sent over an encrypted channel.
+
+Note that if this is the first time we connect ot the system, we will need to confirm the fingerprint of the SSH server's public key to avoid man-in-the-middle attacks. As explained earlier, MITM takes place when a malicious party, E, situates itself between A and B, and communicates with A, pretending to be B, and communicates with B pretending to be A, while A and B think they are communicating directly with each other. In the case of SSH, we don't ususally have a thrid party to check if the public key is valid, so we need to do this manually.
+
+![image](https://user-images.githubusercontent.com/79100627/173194701-11a96594-bf0a-413a-9109-75e4b39cb930.png)
+
+We can use SSH to transfer files using SCP (Secure Copy Protocol) based on the SSH protocol. An example of the syntax is as follows:
+
+```scp mark@10.10.17.190:/home/mark/archive.targ.gz ~```. This command will copy a file named ```archive.tar.gz``` from the remote system located in the ```/home/mark``` directory to ```~```, i.e, the root of the home directory of the currently logged-in user. 
+
+Another example syntax is ```scp backup.tar.bz2 mark@10.10.17.190:/home/mark/```. This command will copy the file ```backup.tar.bz2``` from the local system to the directory ```/home/mark/``` on the remote system. 
+
+![image](https://user-images.githubusercontent.com/79100627/173194808-7e8b0340-c955-435a-8555-eb6e03f9bacd.png)
+
+As a closing note, FTP could be secured using SSL/TLS by using the FTPS protocol which uses port 990. It is worth mentioning that FTP can also be secured using the SSH protocol which is the SFTP protocol. By default this service listens on port 22, just like SSH. 
+
+## Password Attack 
+
+Many protocols require you to authenticate. Authentication is proving who you claim to be. When we are using protocols such as POP3, we should not be given access to the mailbox before verifying our identify. The POP3 example from the Protocols and Servers room is repeated below for your convenience. In this example, we are identified as the user frank, and the server authenticated us because we provided the correct password. In other words, the password is one way to authentication. 
+
+![image](https://user-images.githubusercontent.com/79100627/173195129-b31ed12a-d7bb-49f1-8a0f-875cec480630.png)
+
+Authentication, or providing your identity can be achieved through one of the following, or a combination of two:
+
+1. Something you know, such as password and PIN code.
+2. Something you have, such as SIM card, RFID card, and USB dongle 
+3. Something you are, finger prints and iris 
+
+Attack against passwords are usually carried out by: 
+
+1. Password Guessing: Guessing a password requires some knowledge of the target, such as their pet's name and birth year. 
+2. Dictionary Attack: This approach expands on password guessing and attempts to include all valid words in a dictionary or wordlist.
+3. Brute Force Attack: This attack is most exhaustive and time-consuming where an attacker can go as far as trying all possible character combinations, which grows fast (exponential growth with the number of characters).
+
+Let's focus on dictonary attacks. Over time, hackers have complied list after list containing leaked password from data breaches. One example is RockYou's list of breached passwords. The choice of word list should depend on your knowledge of the target. For instance, a French user might use French word instead of an English one. 
+
+We want an automated way to try the common passwords or the entries from a word list; here comes THC Hydra. Hydra supports many protocols. including FTP, POP3, IMAP, SMTP, SSH and all methods related to HTTP. The general command-line syntax is: ```hydra -l username -P wordlist.txt server service``` where we specify the following options:
+
+- ```-l username```: ```-l``` should preceded the ```username```, ie the login name of the target
+- ```-P wordlist.txt```: ```-P``` preceds the ```wordlist.txt``` file, which is a text file containing the list of passwords you want to try with the provided username 
+- ```server``` is the hostname or IP address of the target server
+- ```service``` indicates the service which you are trying to launch the dictionary attack.
+
+Consider the following example:
+
+```hydra -l mark -P /usr/share/wordlists/rockyou.txt 10.10.17.190 ftp``` will use ```mark``` as the username as it iterates over the provided password against the FTP server. 
+
+```hydra -l mark -P /usr/share/wordlists/rockyou.txt ftp://10.10.17.190``` is identical to the previous example. ```10.10.17.190 ftp``` is the same as ```ftp://10.10.17.190```. 
+
+```hydra -l frank -P /usr/share/wordlists/rockyou.txt 10.10.17.190 ssh``` will use ```frank``` as the user name as it tries to login via SSH using the different passwords. 
+
+There are some extra optional arguments that you can add:
+
+- ```-s PORT``` to specify a non-default port for the service in the question.
+- ```-V``` or ```-vV```, for verbose, makes Hydra show the username and password comibnation that are being tried. The verbosity is very convenient to see the progress
+- ```-t n``` where n is the number of parallel connections to the target ```-t 16``` will create 16 threads used to connect to the target.
+- ```-d```, for debugging to get more detailed information about progress. The debugging output can save you much frustration; for instance, if Hydra tries to connect to a closed port and timing out, ```-d``` will reveal this right away.
+
+Once the password is found, you can issue CTRL-C to end the process. 
+
+![image](https://user-images.githubusercontent.com/79100627/173196142-5666e553-0b62-46ea-9821-013ccb6e4a0a.png)
+
