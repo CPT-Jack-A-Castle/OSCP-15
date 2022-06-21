@@ -74,3 +74,38 @@ dpkg is the core tool used to install a package, either directly or indirectly t
 dpkg will not install any dependencies that the package might require. To install a package with dpkg, provide the -i or --install option and the path to the .deb package file. (This assume that the .deb file installed previously or downloaded)
 
 
+## The Bash Environment 
+
+echo command followed by "$" character and an environment variable name 
+
+![image](https://user-images.githubusercontent.com/79100627/174892512-3c25383c-422b-4cf7-a953-070a770b21dc.png)
+
+also you can use the environment variables such as USER, PWD and HOME
+
+![image](https://user-images.githubusercontent.com/79100627/174892850-1c673f30-efd9-4e33-9f82-67ec8fcc6e0a.png)
+
+An environment variable can be defined with the export command. For example. if we are scanning a target and don't want to type int he system's IP address repeatedly, we can quickly assign it an environment variable and use that instead. 
+
+![image](https://user-images.githubusercontent.com/79100627/174893495-c6a22348-1925-4f57-b59d-f1baacfc2c96.png)
+
+The export command makes the variable accessible to any subprocesses we might spawn from our current Bash instance. If we set an environment variable without export it will only be available in the current shell. 
+
+$$  variable to display the process ID of the current shell instance to make sure that we are indeed issuing commands in two different shells: 
+
+![image](https://user-images.githubusercontent.com/79100627/174893747-276e4765-862d-4455-9786-89a15ae015c5.png)
+
+There are many other env variable can view via ```env``` command
+
+![image](https://user-images.githubusercontent.com/79100627/174893941-9de59fb6-bde0-4b02-877e-067a64e01966.png)
+
+## Tab Completion 
+
+The Bash Shell auto complete function allows us to complete filenames and directory paths with the tab key. 
+
+![image](https://user-images.githubusercontent.com/79100627/174894501-4b313ee5-dd25-4264-a599-ebef16bbe6b9.png)
+
+## Bash History Tricks 
+
+Bash maintains a history of commands that have been entered, which can be displayed with the history command 
+
+
