@@ -44,6 +44,7 @@ Change the ```mtime -1``` to ```mtime -2``` to search last 48 hours, or change i
 
 Searches the ```dir-to-search``` (or current dir if not provided) recursively for entries of type f (file) which were modified less than (1*24) hours ago.
 
+![image](https://user-images.githubusercontent.com/79100627/174876981-ec5c6018-e2e5-4f36-a60f-189aece9e32f.png)
 
 
 
