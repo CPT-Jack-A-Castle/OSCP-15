@@ -108,4 +108,110 @@ The Bash Shell auto complete function allows us to complete filenames and direct
 
 Bash maintains a history of commands that have been entered, which can be displayed with the history command 
 
+## Piping and Redirection 
+
+Piping -> ```|```
+Redirection -> ```>```, ```<``` 
+
+## Redirection 
+
+![image](https://user-images.githubusercontent.com/79100627/175192918-452bbfbb-6b1c-45d2-b5da-ee52f5cef923.png)
+
+## Redirection to Existing File
+
+![image](https://user-images.githubusercontent.com/79100627/175193013-8df4fbc1-3037-4a40-9814-89464a045c1b.png)
+
+Redirection to the other way ```<``` below the picture ```wc``` command STDIN with data originating directly from the file we generated previous section. ```wc -m``` which counts characters in the file 
+
+![image](https://user-images.githubusercontent.com/79100627/175193216-74041081-1e23-422a-a1d2-5e1d91ee332f.png)
+
+## Redirecting the Error 
+
+According tot he POSIX for the STDIN,STOUT, SSTDERR are defined as 0, 1, 2 
+
+![image](https://user-images.githubusercontent.com/79100627/175193457-130c5c9b-6947-4261-8ff1-ec71096f5d12.png)
+
+See the difference between ```ls ./test 2> error.txt``` with the ```ls ./test > error.txt```
+
+## Piping 
+
+![image](https://user-images.githubusercontent.com/79100627/175193614-eccd2777-76bc-4cc5-a28b-57a46e5f0738.png)
+
+## Excercise 
+
+### Use the cat command in conjection with sort to reorder the content of the /etc/passwd
+
+![image](https://user-images.githubusercontent.com/79100627/175193891-518758a6-b746-418f-bedd-38dd2d3089fd.png)
+
+### Redirect output the previous exercise to file of your choice in your home directory 
+
+![image](https://user-images.githubusercontent.com/79100627/175193918-094f7a84-1571-496e-9f4e-8680932bfd71.png)
+
+## Grep 
+
+search text files for occurence of a given regular expression and outputs any line containing a match to the standard output, which is usually the terminal screen. 
+
+![image](https://user-images.githubusercontent.com/79100627/175194260-4fa3af8b-3d33-4345-a042-8d4412b26165.png)
+
+## sed 
+
+sed is a powerful stream deitor. sed performs text editing on a stream of text, either a set of specific files or standard output. 
+
+we created echo command and then piped it to sed in order to replace the word "hard" with "harder" 
+
+![image](https://user-images.githubusercontent.com/79100627/175194534-6b418ea5-4b04-4be3-8325-e2ffb0091214.png)
+
+## Cut
+
+cut used to extract a section of text from a line and output it to the standard output. Some of the most commonly-used switches include -f for the field number we are cutting and ```-d``` for the field delimiter 
+
+![image](https://user-images.githubusercontent.com/79100627/175195156-2dab57ba-d9ed-4584-9b4c-e113d40a310f.png)
+
+![image](https://user-images.githubusercontent.com/79100627/175195252-b4dc2229-1cee-4d26-a554-5efd3bb21913.png)
+
+## AWK 
+
+awk is programming language designed for text processing and data extraction and reporting tool. 
+
+```-F``` field separator , ```print``` result text 
+
+![image](https://user-images.githubusercontent.com/79100627/175195531-6aaf3ec1-17b6-48c3-af11-62d6b42f62c0.png)
+
+## Practical Example 
+
+Apache HTTP server log is given (http://www.ofensive-security.com/pwk-files/access_log.txt.gz) that contains the evidence of attack. Our task is to use Bash comamnd to inspect the file and discover various pieces of information who the attacker and what happened
+
+First we use ```head``` and ```wc``` command to take a quick peek at the log file to understand the stucture. The head command display the first 10 line in a file and wc command along with ```-l``` option displays the total number of lines of the file
+
+![image](https://user-images.githubusercontent.com/79100627/175196268-1ac77fd0-3f24-4caa-99c7-66530da58fca.png)
+
+Notice that log file is text based and contains different field (IP address, time stamp , HTTP request, etc). This is perfectly grep friendly file  we do this by piping output ```cat``` + ```cut``` +```sort```. 
+
+![image](https://user-images.githubusercontent.com/79100627/175196458-2254a393-8b5a-4c7d-9fd2-ff3a8746388a.png)
+
+We see the less than ten IP address, still not telling about the attacker. Next we use ```uniq``` and ```sort``` to show unique lines, further refine our output and sort the data by number of times each IP address accessed the server. the ```-c``` option of uniq will prefix the output line with number of occurrences 
+
+![image](https://user-images.githubusercontent.com/79100627/175196711-a7447d9a-5215-4415-ab54-41ad05c333ec.png)
+
+A few IP address stand out but we will focus on the address of the highest access of frequency. To filter the IP address we do:
+
+![image](https://user-images.githubusercontent.com/79100627/175197005-cb34b50d-0361-44ab-960e-5bce67c2f4e7.png)
+
+From this output it seems that IP address was accessing the /admin. Inspect further: 
+
+![image](https://user-images.githubusercontent.com/79100627/175197563-cc1b3a5e-a94e-4d15-9378-e2892875f914.png)
+
+Apparently IP address has been involved in an HTTP bruteforce attempt against this webserver  it seems like the brute force is succedded that "HTTP 200" message 
+
+## Exercise 
+
+### Using the /etc/passwd extract the user and home directory field for all user on your kali machine 
+
+
+
+
+
+
+
+
 
