@@ -207,6 +207,7 @@ Apparently IP address has been involved in an HTTP bruteforce attempt against th
 
 ### Using the /etc/passwd extract the user and home directory field for all user on your kali machine 
 
+![image](https://user-images.githubusercontent.com/79100627/175209433-01a65bee-05e6-4acd-b71a-3920ec773b89.png)
 
 
 
